@@ -226,6 +226,10 @@ static void SetSys (const char* Sys)
             DefineNumericMacro ("__BBC__", 1);
             break;
 
+        case TGT_BBCSWR:
+            DefineNumericMacro ("__BBCSWR__", 1);
+            break;
+
         case TGT_APPLE2:
             DefineNumericMacro ("__APPLE2__", 1);
             break;

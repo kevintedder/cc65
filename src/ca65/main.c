@@ -316,6 +316,10 @@ static void SetSys (const char* Sys)
             NewSymbol ("__BBC__", 1);
             break;
 
+        case TGT_BBCSWR:
+            NewSymbol ("__BBCSWR__", 1);
+            break;
+
         case TGT_APPLE2:
             NewSymbol ("__APPLE2__", 1);
             break;

@@ -13,7 +13,7 @@
 
 .include        "zeropage.inc"
 .export         sp := c_sp
-.assert         0, ldwarning, "Symbol 'sp' is deprecated - please use 'c_sp' instead"
+;.assert         0, ldwarning, "Symbol 'sp' is deprecated - please use 'c_sp' instead"
 
 .endif
 .endif

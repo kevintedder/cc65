@@ -42,6 +42,8 @@ TARGETS = agat         \
           atari5200    \
           atari7800    \
           atmos        \
+		  bbc          \
+		  bbcswr       \
           creativision \
           $(CBMS)      \
           $(GEOS)      \

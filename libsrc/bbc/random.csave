@@ -1,0 +1,8 @@
+
+long rnd(long iwa){
+
+    long rwa = iwa;
+
+    return rwa;
+
+}

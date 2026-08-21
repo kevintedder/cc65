@@ -1,0 +1,340 @@
+;
+; Startup code for BBC Sideways ROM
+;
+; This must be the *first* file on the linker command line
+; 
+;	Import C defined functions
+	.import		_main
+	.import		_Assign_Static_wrksp
+	.import		_Claim_Private_wrksp
+	.import		_Auto_boot
+	.import		_Unrecognised_Cmd
+	.import		_Unrecognised_Intr
+	.import		_Break
+	.import		_Unrecognised_Osbyte
+	.import		_Unrecognised_Osword
+	.import		_Help
+	.import		_Claim_Static_Wrksp
+	.import		_NMI_Release
+	.import		_NMI_Claim
+	.import		_ROM_fs_Init
+	.import		_ROM_fs_bget
+	.import		_Claim_Vectors
+	.import		_Spool_closure
+	.import		_Font_Warning
+	.import		_FS_Init
+	.import		_Tube_Post_Init
+	.import		_Tube_Init
+
+;	Import Assembler defined functions
+    .import		pushax
+
+;	.include	"bbcswr.inc"
+
+; ------------------------------------------------------------------------
+; Define and export the variables for the BBC runtime
+
+	.exportzp	sp, sreg, regsave
+	.exportzp	ptr1, ptr2, ptr3, ptr4
+	.exportzp	tmp1, tmp2, tmp3, tmp4
+	.exportzp	_Areg, _Xreg, _Yreg
+	.exportzp	_OS_Areg, _OS_Xreg, _OS_Yreg
+    .exportzp	regbank, _cmd_ptr, _pws_ptr
+
+	.export		_SWR_Title, _SWR_Version
+    .export		_print
+	
+.zeropage
+
+zpstart		= *
+regbank		= $a8		; 6 x byte register bank
+sp			= $b0		; Stack pointer (16 Bit)
+sreg		= $b2		; Secondary register/high 16 bit for longs
+regsave		= $b4		; slot to save/restore (E)AX into
+ptr1		= $b6		; 16 Bit
+ptr2		= $b8		; 16 Bit
+ptr3		= $ba		; 16 Bit
+ptr4		= $bc		; 16 Bit
+_pws_ptr	= $be		; 16 Bit pointer to Private Workspace exported to 'C'
+tmp1		= $da		; 16 Bit
+tmp2		= $dc		; 16 Bit
+tmp3		= $de		; 16 Bit
+_Areg		= $e4		; 8 Bit - Save A Reg during service call
+_Xreg		= $e5		; 8 Bit - Save X Reg during service call
+_Yreg		= $e6		; 8 Bit - Save Y Reg during service call
+tmp4		= $f8		; 16 Bit
+_cmd_ptr	= $f2		; 16 Bit pointer to Cmd
+_OS_Areg	= $ef		; Copy of A reg for OSBYTE/OSWORD calls
+_OS_Xreg	= $f0		; Copy of X reg for OSBYTE/OSWORD calls
+_OS_Yreg	= $f1		; Copy of Y reg for OSBYTE/OSWORD calls
+
+
+; ------------------------------------------------------------------------
+.code
+.org	$8000
+
+	jmp	_Language_Entry			; Langauge Entry Point
+	jmp	_Service_Entry			; Service Entry Point
+
+_SWR_Romtype:
+	.byte	$80					; Bit 7 = 1 - Service Entry present
+								; Bit 6 = 0 - No Langauge present
+
+_SWR_Copyright_Offset:
+	.byte	_SWR_Copyright - $8000
+
+_SWR_Binary_Ver:
+	.byte	$00
+
+_SWR_Title:
+	.byte	Title
+
+_SWR_Version:
+	.byte	Version
+
+_SWR_Copyright:
+	.byte	$00, "(C)"
+
+_SWR_Copyright_Str:
+	.byte	"Copyright(c) 2005 ", $00
+
+_SWR_2nd_Proc:
+	.byte	$00, $00
+
+
+
+_Language_Entry:
+;	No langauge defined
+	rts
+
+
+_Service_Entry:
+    
+_Service_01:
+	cmp	#$01
+	bne	_Service_02
+
+	jsr	_Save_Regs
+    
+    lda	#$ff					; Set C stack to Page $0a00 temporarily.
+    sta	sp						; As the system is still initialising
+    ldx	#$0a					; assume page $0a is free to use
+    stx	sp+1
+;								; Cannot set up Private WS yet
+	jsr	_Assign_Static_wrksp	; Call C function(void)
+
+    jmp	_Restore_Regs			; and exit
+
+_Service_02:
+	cmp	#$02
+	bne	_Service_03
+
+	jsr _Save_Regs				;
+
+    lda	#$ff					; Set C stack to Page $0a00 temporarily.
+    sta	sp						; As the system is still initialising
+    ldx	#$0a					; assume page $0a is free to use
+    stx	sp+1
+;								; Cannot set up Private WS yet
+	jsr	_Claim_Private_wrksp	; Call C function(void)
+
+    jmp	_Restore_Regs			; and exit
+
+_Service_03:
+	cmp	#$03
+	bne	_Service_04
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Auto_boot				; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_04:
+	cmp	#$04
+	bne	_Service_05
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Unrecognised_Cmd		; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_05:
+	cmp	#$05
+	bne	_Service_06
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Unrecognised_Intr		; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_06:
+	cmp	#$06
+	bne	_Service_07
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Break					; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_07:
+	cmp	#$07
+	bne	_Service_08
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Unrecognised_Osbyte	; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_08:
+	cmp	#$08
+	bne	_Service_09
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Unrecognised_Osword	; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_09:
+	cmp	#$09
+	bne	_Service_0a
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Help					; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_0a:
+	cmp	#$0a
+	bne	_Service_0b
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Claim_Static_Wrksp		; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_0b:
+	cmp	#$0b
+	bne	_Service_0c
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_NMI_Release			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_0c:
+	cmp	#$0c
+	bne	_Service_0d
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_NMI_Claim				; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_0d:
+	cmp	#$0d
+	bne	_Service_0e
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_ROM_fs_Init			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_0e:
+	cmp	#$0e
+	bne	_Service_0f
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_ROM_fs_bget			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_0f:
+	cmp	#$0f
+	bne	_Service_10
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Claim_Vectors			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_10:
+	cmp	#$10
+	bne	_Service_11
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Spool_closure			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_11:
+	cmp	#$11
+	bne	_Service_12
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Font_Warning			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_12:
+	cmp	#$12
+	bne	_Service_fe
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_FS_Init				; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_fe:
+	cmp	#$fe
+	bne	_Service_ff
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Tube_Post_Init			; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_ff:
+	cmp	#$ff
+	bne	_Service_XX
+
+	jsr _Set_C_Env				; Setup C Environment
+	jsr	_Tube_Init				; Call C function(void)
+    jmp	_Restore_Regs			; and exit
+
+_Service_XX:
+;	Unrecognised service call
+	rts
+
+
+_Set_C_Env:
+	jsr _Save_Regs				; Save CPU registers
+	
+;	Setup C Stack Pointer
+	lda	#63						; Setup stack - First 64 bytes of PWS
+	sta	sp						; Stack Pointer(Lo)
+;	ldx	_Xreg					; X Reg already is current ROM - Not necessary
+;	tya							; PAGE begining of Private Workspace  
+;	sta	$0df0,x					; Save start of Private Workspace indexed by ROM No.
+	lda	$0df0,x					; Get Start of Private Workspace
+	sta	sp + 1					; Stack Pointer(Hi) - Save
+
+;	Setup Private Workspace Pointer
+	sta _pws_ptr + 1			; Private Workspace(Hi)
+	lda	#0
+	sta _pws_ptr				; Private Workspace(Lo)
+	rts
+  
+_Save_Regs:
+; Save CPU registers
+    sta	_Areg
+	stx	_Xreg
+	sty	_Yreg
+	rts
+
+_Restore_Regs:
+;								; Restore CPU Registers
+	ldy	_Yreg
+	ldx	_Xreg
+	lda	_Areg
+	rts
+
+; void __fastcall print(char *s[])
+_print:
+	sta	ptr1
+    stx	ptr1 + 1
+    ldy	#0
+_P_10:
+	lda	(ptr1),y
+    cmp	#$00
+    beq	_P_exit
+	jsr	OSWRCH
+;	cmp	#$0d
+;	beq	_P_exit
+    iny
+    bne	_P_10
+_P_exit:
+	rts
+

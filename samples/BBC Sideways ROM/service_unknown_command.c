@@ -1,0 +1,68 @@
+/*****************************************************************************/
+/*                                                                           */
+/*                                sideways_rom.c                             */
+/*                                                                           */
+/*                Define a BBC sideways ROM framework Header                 */
+/*                                                                           */
+/* (C) 2025  Kevin Tedder                                                    */
+/*                                                                           */
+/* Versions:                                                                 */
+/* 01/06/2025   v1.0    -   First release                                    */
+/*                                                                           */
+/*                                                                           */
+/*                                                                           */
+/* This software is provided 'as-is', without any expressed or implied       */
+/* warranty.  In no event will the authors be held liable for any damages    */
+/* arising from the use of this software.                                    */
+/*                                                                           */
+/* Permission is granted to anyone to use this software for any purpose,     */
+/* including commercial applications, and to alter it and redistribute it    */
+/* freely, subject to the following restrictions:                            */
+/*                                                                           */
+/* 1. The origin of this software must not be misrepresented; you must not   */
+/*    claim that you wrote the original software. If you use this software   */
+/*    in a product, an acknowledgment in the product documentation would be  */
+/*    appreciated but is not required.                                       */
+/* 2. Altered source versions must be plainly marked as such, and must not   */
+/*    be misrepresented as being the original software.                      */
+/* 3. This notice may not be removed or altered from any source              */
+/*    distribution.                                                          */
+/*                                                                           */
+/*****************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <bbc/swr_print_lite.h>
+#include <bbc/swr.h>
+#include <bbc/swr_cmds.h>
+#include <bbc/swr_callback.h>
+#include <bbc/swr_debug.h>
+#include <bbc/types.h>
+
+void service_unknown_command() {
+	int idx = 0;
+    char *cmd_str;
+
+    claim_absolute_static_workspace();      	// I need the AWS so claim it.
+
+    // --------------------------------//
+    // PLACE YOUR CODE HERE            //
+    // --------------------------------//
+
+    cmd_str = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
+	
+	for( idx = 0; idx < cmd_count; idx++ ) {
+
+		if (  strcmp_cr( cmd_str, commands[idx].command ) == 0  ) {
+			// Command recognised
+
+			swr_callback(commands[idx].func);	// Call the recognised command
+
+			Areg = 0;                       	// Prevent further ROMs from processing this cmd
+			break;
+		}
+	}
+}
+

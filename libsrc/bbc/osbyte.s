@@ -20,7 +20,7 @@
 
 
 ; ---------------------------------------------------------------
-; unsigned char __near__ osbyte (unsigned char A_reg, unsigned char X_reg, unsigned char Y_reg)
+; unsigned char __near__ osbyte ( byte A_reg, byte X_reg, byte Y_reg)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"

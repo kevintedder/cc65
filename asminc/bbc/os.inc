@@ -325,3 +325,4 @@ Error_BadCommandOption          =       $601
 Error_UnknownSerialOp           =       $602
 Error_BadHard                   =       $603
 
+

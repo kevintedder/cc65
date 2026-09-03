@@ -24,7 +24,7 @@ L0023:
 	.byte	$00
 
 ; ---------------------------------------------------------------
-; int __near__ _OSWORD (unsigned char, __near__ union osword_parameter_block *)
+; int __near__ _OSWORD ( byte A_reg, __near__ union osword_parameter_block *)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -38,7 +38,7 @@ L0023:
 ;
 ;	AX contain param block pointer (A: Low Byte;  X: High Byte)
 
-	sta		tmp1		; Save AX
+	sta		tmp1		; Save AX - pointer to param_block
 	stx 	tmp2
 
 	ldy		#$00		;

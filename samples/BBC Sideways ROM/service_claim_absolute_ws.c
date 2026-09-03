@@ -34,15 +34,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbc/swr_print_lite.h>
-#include <bbc/swr.h>
-#include <bbc/swr_debug.h>
-#include <bbc/types.h>
+#include <bbcswr/swr_print_lite.h>
+#include <bbcswr/swr.h>
+#include <bbcswr/swr_debug.h>
+#include <bbcswr/types.h>
 
 
 #define configure_aws           // Optional - If defined, include code to claim Absolute workspace
 
-// struct aws aws;                 // declare uninitialised variable, from /include/bbc/swr.h,  in
+// struct aws aws;                 // declare uninitialised variable, from /include/bbcswr/swr.h,  in
                                 // segment BSS @ 0x0e00.  All ROM variables must be placed in
                                 // here. No access outside the AWS is permitted.
 //  Reference all ROM variables as :

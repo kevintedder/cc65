@@ -317,7 +317,7 @@ endef # COMPILE_recipe
 
 $(EXTRA_OBJPAT): $(EXTRA_SRCPAT) | ../libwrk/$(TARGET) ../lib
 	$(if $(QUIET),@echo $(TARGET) - $(<F))
-	@$(CA65) -t $(TARGET) $(CA65FLAGS) --create-dep $(@:../lib/%.o=../libwrk/$(TARGET)/%.d) -o $@ $<
+	$(CA65) -t $(TARGET) $(CA65FLAGS) --create-dep $(@:../lib/%.o=../libwrk/$(TARGET)/%.d) -o $@ $<
 
 $(EXTRA_OBJS): | ../lib
 

@@ -77,14 +77,13 @@ reset:
 
 _exit_bits:	; AX contains exit code, store LSB in user flag
 	
-
 	tax
 	ldy	#0
 	lda	#osbyte_USER_FLAG
 	jsr	OSBYTE
 
 	jsr     donelib
-	
+
 	; reset escape event state
 	lda	oldescen
 	bne	l1
@@ -97,7 +96,6 @@ l1:	sei
 
 	jsr	release_brk
 
-		
 	; restore event handler
 	lda	oldeventv
 	sta	EVNTV

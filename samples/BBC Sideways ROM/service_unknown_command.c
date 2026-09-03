@@ -34,12 +34,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbc/swr_print_lite.h>
-#include <bbc/swr.h>
-#include <bbc/swr_cmds.h>
-#include <bbc/swr_callback.h>
-#include <bbc/swr_debug.h>
-#include <bbc/types.h>
+#include <bbcswr/swr_print_lite.h>
+#include <bbcswr/swr.h>
+#include <bbcswr/swr_cmds.h>
+#include <bbcswr/swr_callback.h>
+#include <bbcswr/swr_debug.h>
+#include <bbcswr/types.h>
 
 void service_unknown_command() {
 	int idx = 0;

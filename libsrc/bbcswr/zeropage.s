@@ -10,7 +10,7 @@
 ; ------------------------------------------------------------------------
 
 .zeropage
-;   Address $90 - $9f
+;   Address $90 - $9f			; Allocated to the ECONET system but assumed not in use.
 c_sp:           .res    2       ; Stack pointer
 sreg:           .res    2       ; Secondary register/high 16 bit for longs
 ptr1:           .res    2
@@ -23,6 +23,7 @@ tmp3:           .res    1
 tmp4:           .res    1
 
 .segment "ZEROPAGE2": zeropage
-;   Address $b0 - $bf
+;   Address $b0 - $bf			; Allocate dto the filing sytsem scratch space. Assumed for
+;								; general used as data will not survive between service calls.
 regsave:        .res    4       ; Slot to save/restore (E)AX into
 regbank:        .res    regbanksize     ; Register bank

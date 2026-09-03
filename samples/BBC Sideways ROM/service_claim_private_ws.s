@@ -27,7 +27,7 @@
 .segment	"CODE"
 
 ;
-; Yreg += ( sizeof(struct pws) / 256 ) + 1;   // Struct pws declared in /include/bbc/swr.h
+; Yreg += ( sizeof(struct pws) / 256 ) + 1;   // Struct pws declared in /include/bbcswr/swr.h
 ;
 	inc     _Yreg
 ;

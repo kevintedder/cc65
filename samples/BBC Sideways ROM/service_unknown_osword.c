@@ -34,10 +34,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbc/swr_print_lite.h>
-#include <bbc/swr.h>
-#include <bbc/swr_debug.h>
-#include <bbc/types.h>
+#include <bbcswr/swr_print_lite.h>
+#include <bbcswr/swr.h>
+#include <bbcswr/swr_debug.h>
+#include <bbcswr/types.h>
 
 void service_unknown_osword() {
     // print_lite( "unknown_osword " );

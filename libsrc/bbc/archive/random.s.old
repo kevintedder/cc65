@@ -7,7 +7,7 @@
 	.autoimport	on
 	.case		on
 	.debuginfo	off
-	.importzp	sp, sreg, regsave, regbank
+	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.forceimport	__STARTUP__
@@ -17,7 +17,7 @@
 .segment	"BSS"
 _seed:
 	.res	4,$00
-
+	
 .segment	"RODATA"
 	
 ; ---------------------------------------------------------------
@@ -53,8 +53,10 @@ _seed:
 ;
 ; set _seed;
 ;
-L009B:	jsr     ldeax0sp
-L00BA:	sta     _seed
+L009B:
+	jsr     ldeax0sp
+L00BA:
+	sta     _seed
 	stx     _seed+1
 	ldy     sreg
 	sty     _seed+2
@@ -78,9 +80,31 @@ L00BA:	sta     _seed
 
 .segment	"CODE"
 
+	ldy		#$00
+
+L0110:
+	lda		_seed,y
+	cmp		#$00
+	bne		L0100
+
+	iny
+	cpy		#$04
+	bne		L0110
+	
+;	
+;	random seed == 0; Initialise
+;
+	lda		#$00
+	sta		sreg
+	sta		sreg+1
+	tax
+	
+	jsr     _randomise
+	
 ;
 ; seed = (seed * 53) + 17;
 ;
+L0100:
 	lda     _seed+3
 	sta     sreg+1
 	lda     _seed+2

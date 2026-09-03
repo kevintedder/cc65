@@ -7,29 +7,62 @@
 	.autoimport	on
 	.case		on
 	.debuginfo	off
-	.importzp	sp, sreg, regsave, regbank
+	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.forceimport	__STARTUP__
 
-	.import		_OSWRCH
+	.import		OSWRCH, OSBYTE
 
+	.export		_mode
 	.export		_clg
 	.export		_cls
 	.export		_colour
 	.export		_gcol
+	.export		_default_colours
 	.export		_plot
+	.export		_graphics_window
 
-	.include        "bbc/os.inc"
+	.include	"bbc/bbcbasic.inc"
+	.include	"bbc/os.inc"
 
 
 .segment	"BSS"
 
+
 ; ---------------------------------------------------------------
-; void __near__ clg ()
+; void __near__ mode (unsigned char)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
+
+.proc	_mode: near
+
+;
+; void mode(byte _mode)
+;
+	pha					; Save Mode value on CPU stack
+
+	lda     #$16		; Change screen mode (dec 22)
+	jsr     OSWRCH
+
+	pla					; Restore Mode value to set mode value
+	jsr     OSWRCH
+
+	lda		#$84		; Read bottom of display RAM address (HIMEM)
+	jsr		OSBYTE
+	stx		_himem		; Update BASIC HIMEM
+	stx		_basicsp	; Update BASIC Stack Pointer
+	sty		_himem+1
+	sty		_basicsp+1
+
+	rts
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ clg ()
+; ---------------------------------------------------------------
 
 .proc	_clg: near
 
@@ -48,8 +81,6 @@
 ; void __near__ cls()
 ; ---------------------------------------------------------------
 
-.segment	"CODE"
-
 .proc	_cls: near
 
 .segment	"CODE"
@@ -66,8 +97,6 @@
 ; ---------------------------------------------------------------
 ; void __near__ colour (unsigned char)
 ; ---------------------------------------------------------------
-
-.segment	"CODE"
 
 .proc	_colour: near
 
@@ -92,8 +121,6 @@
 ; void __near__ gcol (unsigned char, unsigned char)
 ; ---------------------------------------------------------------
 
-.segment	"CODE"
-
 .proc	_gcol: near
 
 .segment	"CODE"
@@ -107,7 +134,7 @@
 	jsr     _OSWRCH			; Define graphics colour (dec 18)
 
 	ldy     #$00
-	lda     (sp),y
+	lda     (c_sp),y
 	jsr     _OSWRCH			; Get _k
 
 	pla
@@ -118,17 +145,32 @@
 .endproc
 
 ; ---------------------------------------------------------------
-; void __near__ plot (unsigned char, int, int)
+; void __near__ default_colours ( void)
 ; ---------------------------------------------------------------
 
+.proc	_default_colours: near
+
 .segment	"CODE"
+
+;
+; void default_colours()
+;
+	lda     #$14
+	jsr     _OSWRCH			; Restore defualt colours (dec 20)
+	rts
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ plot (unsigned char, int, int)
+; ---------------------------------------------------------------
 
 .proc	_plot: near
 
 .segment	"CODE"
 
 ;
-; void plot(byte _k, int _x, int _y) {
+; void plot(byte k, int x, int y) {
 ;
 	jsr     pushax
 ;
@@ -137,37 +179,76 @@
 	lda     #$19
 	jsr     _OSWRCH			; Define graphics plot (dec 25)
 
-	ldy     #$04
-	lda     (sp),y
-	jsr     _OSWRCH
+	ldy		#$04
+	jsr     VDU_Byte		; k
 
 	ldy     #$02
-	lda     (sp),y
-	jsr     _OSWRCH			; BYTELOW(_x)
+	jsr		VDU_Word		; x
 
-	lda     #$02
-	jsr     leaa0sp
-	jsr     incax1
-	sta     ptr1
-	stx     ptr1+1
-	ldy     #$00
-	lda     (ptr1),y
-	jsr     _OSWRCH			; BYTEHIGH(_x)
-
-	ldy     #$00
-	lda     (sp),y
-	jsr     _OSWRCH			; BYTELOW(_y)
-
-	lda     sp
-	ldx     sp+1
-	jsr     incax1
-	sta     ptr1
-	stx     ptr1+1
-	ldy     #$00
-	lda     (ptr1),y
-	jsr     _OSWRCH			; BYTEHIGH(_y)
+	ldy     #$00			
+	jsr		VDU_Word		; y
 
 	jmp     incsp5
 
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ plot (unsigned char, int, int)
+; ---------------------------------------------------------------
+
+.proc	_graphics_window: near
+
+.segment	"CODE"
+
+;
+; void graphics_window( unsigned int _left, unsigned int _bottom, unsigned int _right, unsigned int _top )
+;
+	jsr     pushax			; Push unsigned int _top onto C stack
+;
+; oswrch(25);
+;
+	lda     #$18
+	jsr     _OSWRCH			; Define graphics window (dec 24)
+
+							; Send coordinates to VDU driver
+	ldy     #$06			
+	jsr		VDU_Word		; Left
+
+	ldy     #$04			
+	jsr		VDU_Word		; Bottom
+
+	ldy     #$02			
+	jsr		VDU_Word		; Right
+
+	ldy     #$00			
+	jsr		VDU_Word		; Top
+
+	jmp     incsp8
+
+.endproc
+
+
+; ---------------------------------------------------------------
+.proc	VDU_Byte: near
+;	On entry:  Y contains an offset to parameter on the C stack
+
+.segment	"CODE"
+
+	lda     (c_sp),y
+	jmp     _OSWRCH
+	
+.endproc
+
+
+; ---------------------------------------------------------------
+.proc	VDU_Word: near
+;	On entry:  Y contains an offset to parameter on the C stack
+
+.segment	"CODE"
+
+	jsr     VDU_Byte			; BYTELOW( x )
+	iny
+	jmp     VDU_Byte			; BYTEHIGH( x )
+	
 .endproc
 

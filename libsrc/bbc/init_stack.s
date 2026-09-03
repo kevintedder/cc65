@@ -2,7 +2,7 @@
 	.export init_stack
 	.include "bbc/os.inc"
 	.include "bbc/osbyte.inc"
-	.importzp sp
+	.importzp c_sp
 
 init_stack:
 	; of the two blocks below, one should be selected
@@ -20,8 +20,8 @@ init_stack:
 
 						; put the stack in the BASIC work area &400-7FF
 	lda	#$ff
-	sta	sp
+	sta	c_sp
 	lda	#$7
-	sta	sp + 1
+	sta	c_sp + 1
 
 	rts

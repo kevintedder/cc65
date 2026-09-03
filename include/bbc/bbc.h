@@ -115,25 +115,25 @@
 */
 
 
-/* colour does work with conio for bbc */
-#define COLOR_BLACK  	       	0
-#define COLOR_WHITE  	       	7
-#define COLOR_RED    	       	1
-#define COLOR_CYAN      	6
-#define COLOR_VIOLET 	       	5
-#define COLOR_GREEN  	        2
-#define COLOR_BLUE   	       	4
-#define COLOR_YELLOW 	       	3
+/* foreground colour for bbc */
+#define COLOUR_FG_BLACK			0
+#define COLOUR_FG_WHITE			7
+#define COLOUR_FG_RED			1
+#define COLOUR_FG_CYAN			6
+#define COLOUR_FG_MAGENTA 		5
+#define COLOUR_FG_GREEN			2
+#define COLOUR_FG_BLUE			4
+#define COLOUR_FG_YELLOW		3
 
-/* ??? these are wrong!!! */
+/* background colour for bbc */
+#define COLOUR_BG_BLACK			128
+#define COLOUR_BG_WHITE			135
+#define COLOUR_BG_RED			129
+#define COLOUR_BG_CYAN			134
+#define COLOUR_BG_MAGENTA 		133
+#define COLOUR_BG_GREEN			130
+#define COLOUR_BG_BLUE			132
+#define COLOUR_BG_YELLOW		131
 
-#define COLOR_ORANGE 	       	8
-#define COLOR_BROWN  	       	9
-#define COLOR_LIGHTRED       	10
-#define COLOR_GRAY1  	       	11
-#define COLOR_GRAY2  	       	12
-#define COLOR_LIGHTGREEN     	13
-#define COLOR_LIGHTBLUE      	14
-#define COLOR_GRAY3  	       	15
 
 #endif 

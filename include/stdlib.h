@@ -120,7 +120,7 @@ size_t __heapmemavail (void);
 
 size_t __heapmaxavail (void);
 /* Return the size of the largest free block on the heap */
-#if __CC65_STD__ == __CC65_STD_CC65__
+#if __CC65_STD__ == s__CC65_STD_CC65__
 /* define old name with one underscore for backwards compatibility */
 #define _heapmaxavail __heapmaxavail
 #endif

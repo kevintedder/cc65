@@ -2,14 +2,15 @@
 # cc65 makefile for the BBC Sideways ROM specific modules
 #
 
-#.SUFFIXES: .o .s .c
+.SUFFIXES: .o .s .c
 MAKEFLAGS += -rR
 
 #--------------------------------------------------------------------------
-TARGET	= bbcswr
+TARGET	= bbc
 
+USER_HOME	= $(HOME)
 # Assume CC65_HOME is 2 levels up from here Eg. CC65\samples\<current folder>
-CC65_HOME	= ..\..
+CC65_HOME	= $(USER_HOME)\cc65
 
 #	CC65 Folders
 CC65_INC	= $(CC65_HOME)\asminc
@@ -38,63 +39,44 @@ CFLAGS		?= -Osir -T -t $(TARGET) $(CWARN)
 DAFLAGS		?= --comments 4 -S 0x8000
 LDFLAGS		?= -m $@.map -vm -t $(TARGET)
 
-BINARY	=	swr.rom
+BINARY	=	hello
 
-LIBRARY	=	$(CC65_LIB)\bbcswr.lib
+LIBRARY	=	$(CC65_LIB)\$(TARGET).lib
 
-ROM_SEED_OBJ =	$(CC65_LIBWRK)\bbcswr\crt0.o
-ROM_SEED_SRC =	$(CC65_LIBSRC)\bbcswr\crt0.s
+BEEBMEM_LIB = C:\Users\kevin\Documents\BeebEm
 
-SERVICES	=	swr.o \
-				swr_cmds.o \
-				service_no_op.o \
-				service_claim_absolute_ws.o \
-				service_claim_private_ws.o \
-				service_auto_boot.o \
-				service_unknown_command.o \
-				service_unknown_interrupt.o \
-				service_break.o \
-				service_unknown_osbyte.o \
-				service_unknown_osword.o \
-				service_help.o \
-				service_claim_static_ws.o \
-				service_nmi_release.o \
-				service_nmi_claim.o \
-				service_initilise_rom_fs.o \
-				service_rom_fs_get_byte.o \
-				service_vector_claim.o \
-				service_spool_closure.o \
-				service_font_explosion.o \
-				service_filesystem_init.o \
-				service_tube_post_init.o \
-				service_tube_main_init.o
+SEED_OBJ =	$(CC65_LIBWRK)\$(TARGET)\crt0.o
+SEED_SRC =	$(CC65_LIBSRC)\$(TARGET)\crt0.s
+
+MODULES	=	hello.c
+
 
 ifeq ($(OS), Windows_NT)
 #	Windows OS
 	DELETE	= del
+	COPY	= copy
 else
 #	Linux OS
 	DELETE	= rm
+	COPY	= cp
 endif
+
+
+.PHONY: all, clean, cleanlib
 
 #--------------------------------------------------------------------------
 # Rules
 
-all:	$(ROM_SEED_OBJ)   $(BINARY)   $(BINARY).asm 
+all:	$(BINARY)   
+#$(BINARY).asm 
 
-#	Rebuild the ROM seed file (~\CC65\LIBSRC\BBCSWR\CRT0.o) if it or the 
-#	ROM header file (.\SWR.INC) have changed 
-$(ROM_SEED_OBJ):  $(ROM_SEED_SRC)  .\swr.inc  ..\..\asminc\bbc\os.inc $(SERVICES)
-	$(CA65) $(ASFLAGS) -o $(ROM_SEED_OBJ)  $<
-	$(AR65) a $(CC65_LIB)\bbcswr.lib  $(ROM_SEED_OBJ)
-
+#  $(CC65_LIB)\$(TARGET).lib   $(CC65_INC)\$(TARGET)\%.inc
+$(BINARY):	$(BINARY).o  $(CC65_LIB)\$(TARGET).lib
+	$(LD65) $(LDFLAGS) -o $@  $(SEED_OBJ) $^ $(LIBRARY) 
+	$(COPY) $(BINARY) $(BEEBMEM_LIB)\$(BINARY)
 
 %.asm:	$(BINARY)
 	$(DA65) $(DAFLAGS) -o $^.asm $<
-
-
-$(BINARY):	$(SERVICES)  $(ROM_SEED_OBJ)
-	$(LD65) $(LDFLAGS) -o $@  $^ $(LIBRARY) 
 
 
 .PRECIOUS: %.o

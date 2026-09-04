@@ -40,12 +40,19 @@
 #include <bbcswr/types.h>
 
 void service_unknown_interrupt() {
-    // print_lite( "unknown_interrupt " );
+    // swr_print_str( "unknown_interrupt " );
     // print_newline();
     // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
+
 
 }

@@ -41,11 +41,19 @@
 
 
 void service_auto_boot( ) {
-	print_rom_title();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
+
+	print_rom_title();
+    swr_print_newline();
 
 }
 

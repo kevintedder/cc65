@@ -127,11 +127,11 @@ L0004:	jsr     _intdec
 ;
 ; }
 ;
-	cmp     #$16
+	cmp     #$1A
 	beq     L0004
-	cmp     #$17
+	cmp     #$1B
 	beq     L0005
-	cmp     #$18
+	cmp     #$1C
 	beq     L0006
 	rts
 ;

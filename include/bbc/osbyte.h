@@ -3,7 +3,7 @@
 
 #include <bbc/types.h>
 
-extern int osbyte(byte A, byte X, byte Y);
+extern unsigned int osbyte(byte A, byte X, byte Y);
 
 #endif
 

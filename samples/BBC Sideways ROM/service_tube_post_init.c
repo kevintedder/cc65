@@ -40,12 +40,18 @@
 #include <bbcswr/types.h>
 
 void service_tube_post_init() {
-    // print_lite( "tube_post_init " );
+    // swr_print_str( "tube_post_init " );
     // print_newline();
     // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
 
 }

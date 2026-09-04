@@ -46,8 +46,8 @@ struct aws {
     byte    tmp2;
     word    tmp3;
     word    tmp4;
-    byte  padding[248];         // Total = 255 Byte (1 x Page)
-};                              // Allocated to BSS Segment in page 0x0e00 (see BBCSWR.CFG)
+    byte  padding[240];         // Total = 255 Byte (1 x Page)
+};								// Allocated to BSS Segment in page 0x0e00 (see BBCSWR.CFG)
 
 // User defined struct of the Private Work Space. 
 // Permanent variable data should be declare within here. Data is guarenteed
@@ -57,14 +57,14 @@ struct pws {
     byte    tmp2;
     word    tmp3;
     word    tmp4;
-    byte  padding[248];         // Total = 255 Byte (1 x Page)
+    byte  padding[240];         // Total = 255 Byte (1 x Page)
 };
 
 
-extern struct aws* aws;			// Absolute workspace requires X pages (see 'struct aws' above)
+extern struct aws *aws;			// Absolute workspace requires X pages (see 'struct aws' above)
 #pragma zpsym ("aws");			// aws is in the zeropage
 
-extern struct pws*  pws;		// Private workspace requires X pages (see 'struct pws' above)
+extern struct pws *pws;			// Private workspace requires X pages (see 'struct pws' above)
 #pragma zpsym ("pws");			// pws is in the zeropage
 
 extern byte   Areg;             // __A__ register saved on entry to service call

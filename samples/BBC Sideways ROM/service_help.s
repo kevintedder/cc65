@@ -63,6 +63,10 @@ L000B:	ldy     #$02
 	cmp     #$0D
 	bne     L0002
 ;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
 ; print_rom_title();
 ;
 	jsr     _print_rom_title
@@ -81,7 +85,11 @@ L0002:	ldy     #$05
 	cpx     #$00
 	jne     L0004
 	cmp     #$00
-	bne     L0004
+	jne     L0004
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
 ;
 ; print_rom_title();
 ;

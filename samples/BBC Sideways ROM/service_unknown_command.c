@@ -51,6 +51,12 @@ void service_unknown_command() {
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
+
     cmd_str = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
 	
 	for( idx = 0; idx < cmd_count; idx++ ) {
@@ -58,7 +64,7 @@ void service_unknown_command() {
 		if (  strcmp_cr( cmd_str, commands[idx].command ) == 0  ) {
 			// Command recognised
 
-			swr_callback(commands[idx].func);	// Call the recognised command
+			swr_callback( commands[idx].func );	// Call the recognised command
 
 			Areg = 0;                       	// Prevent further ROMs from processing this cmd
 			break;

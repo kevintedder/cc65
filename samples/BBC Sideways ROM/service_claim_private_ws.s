@@ -27,26 +27,36 @@
 .segment	"CODE"
 
 ;
-; Yreg += ( sizeof(struct pws) / 256 ) + 1;   // Struct pws declared in /include/bbcswr/swr.h
+; ws = Yreg + ( sizeof(struct pws) / 256 ) + 1; // Struct pws declared in /include/bbcswr/swr.h
 ;
-	inc     _Yreg
+	jsr     decsp1
+	lda     _Yreg
+	clc
+	adc     #$01
+	ldy     #$00
+	sta     (c_sp),y
 ;
-; paged_rom_ws[Xreg] = Yreg;          // Save PWS pointer into Paged ROM Workspace Storage @ 0x0df0
+; paged_rom_ws[Xreg] = ws;      // Save PWS pointer into Paged ROM Workspace Storage @ 0x0df0
 ;
 	ldy     _Xreg
-	lda     _Yreg
 	sta     _paged_rom_ws,y
 ;
-; pws = Yreg * 256;                   // Define how many pages required for private workspace
+; pws = (struct pws *)(ws * 256);     // Define how many pages required for private workspace
 ;
+	ldy     #$00
+	lda     (c_sp),y
 	tax
-	lda     #$00
-	sta     _pws
+	sty     _pws
 	stx     _pws+1
+;
+; Yreg = ws;
+;
+	lda     (c_sp),y
+	sta     _Yreg
 ;
 ; }
 ;
-	rts
+	jmp     incsp1
 
 .endproc
 

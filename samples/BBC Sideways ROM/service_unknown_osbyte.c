@@ -62,21 +62,28 @@ void service_unknown_osbyte() {
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+    swr_print_newline();
+#endif
+
 	switch ( OS_Areg ) {
 		
-		case 22:
+		case 26:
 			print_osbyte();
 			aws->tmp1 = 10;
 			Areg = 0;                       // Prevent further ROMs from processing this cmd
 			break;
 			
-		case 23:
+		case 27:
 			print_osbyte();
 			aws->tmp1 = 20;
 			Areg = 0;                       // Prevent further ROMs from processing this cmd
 			break;
 
-		case 24:
+		case 28:
 			print_osbyte();
 			aws->tmp1 = 30;
 			Areg = 0;                       // Prevent further ROMs from processing this cmd

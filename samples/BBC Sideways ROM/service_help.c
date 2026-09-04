@@ -52,14 +52,22 @@ void service_help() {
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
+
     help_cmd = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
 
     if ( help_cmd[0] == 0x0d ) {                 // No command supplied
+		swr_print_newline();
         print_rom_title();
     }
     else {
 
         if ( strcmp_cr( help_cmd, SWR_Title ) == 0 ) {
+			swr_print_newline();
             print_rom_title();
 
  			for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {

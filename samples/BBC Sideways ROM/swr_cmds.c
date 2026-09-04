@@ -8,8 +8,7 @@
 /* 		const char cmd1[]  = "F1";		// The name of the command           */
 /* 		const char desc1[] = "abc";		// A desciption of the command       */
 /* 		void func1() {					// The function to be called         */
-/* 			swr_print_str("func1");                                          */
-/* 			swr_print_newline();                                             */
+/* 			## Command Code here  ##                                         */
 /*		}                                                                    */
 /*                                                                           */
 /* Include each command in the struct cmd array                              */
@@ -59,35 +58,35 @@
 const char cmd1[]  = "F1";
 const char desc1[] = "abc";
 void func1() {
-	swr_print_str("func1");
+	swr_print_str("Cmd: Func 1");
 	swr_print_newline();
 }
 
 const char cmd2[]  = "F2";
 const char desc2[] = "def";
 void func2() {
-	swr_print_str("func2");
+	swr_print_str("Cmd: Func 2");
 	swr_print_newline();
 }
 
 const char cmd3[]  = "F3";
 const char desc3[] = "ghi";
 void func3() {
-	swr_print_str("func3");
+	swr_print_str("Cmd: Func 3");
 	swr_print_newline();
 }
 
 const char cmd4[]  = "F4";
 const char desc4[] = "ghi";
 void func4() {
-	swr_print_str("func4");
+	swr_print_str("Cmd: Func 4");
 	swr_print_newline();
 }
 
 const char cmd5[]  = "F5";
 const char desc5[] = "ghi";
 void func5() {
-	swr_print_str("func5");
+	swr_print_str("Cmd: Func 5");
 	swr_print_newline();
 }
 
@@ -105,11 +104,11 @@ void func<N>() {
 */
 
 const struct cmd commands[cmd_count] = { 
-				{ cmd1, desc1, func1 }, 
-				{ cmd2, desc2, func2 }, 
-				{ cmd3, desc3, func3 }, 
-				{ cmd4, desc4, func4 }, 
-				{ cmd5, desc5, func5 }
+				{ (char *)cmd1, (char *)desc1, func1 }, 
+				{ (char *)cmd2, (char *)desc2, func2 }, 
+				{ (char *)cmd3, (char *)desc3, func3 }, 
+				{ (char *)cmd4, (char *)desc4, func4 }, 
+				{ (char *)cmd5, (char *)desc5, func5 }
 };
 
 

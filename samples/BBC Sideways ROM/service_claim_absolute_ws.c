@@ -39,7 +39,6 @@
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-
 #define configure_aws           // Optional - If defined, include code to claim Absolute workspace
 
 // struct aws aws;                 // declare uninitialised variable, from /include/bbcswr/swr.h,  in
@@ -54,19 +53,25 @@
 void service_claim_absolute_ws() {
     byte ws;
 
-    // print_lite( "claim_absolute_ws " );
-    // print_newline();
-    // print_cpu_registers();
-    // print_workspace();
+    // swr_print_str( "claim_absolute_ws " );
+    // swr_print_newline();
+    // dbg_print_cpu_registers();
+    // dbg_print_workspace();
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
 
 #ifdef configure_aws
-    ws = 0x0e + ( sizeof(struct aws) / 256 ) + 1;   // Start with OSHWM + size of AWS in 256 byte pages + 1
+    ws = 0x0e + ( sizeof(struct aws) / 256 );   // Start with OSHWM + size of AWS in 256 byte pages + 1
     if ( ws > Yreg ) {
-        Yreg = ws;
+        aws = (struct aws *)0x0e00;
+		Yreg = ws;
     }
 #endif
 
-    // print_cpu_registers();
+    // dbg_print_cpu_registers();
+    // dbg_print_workspace();
 }
-
-

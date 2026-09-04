@@ -40,12 +40,18 @@
 #include <bbcswr/types.h>
 
 void service_unknown_osword() {
-    // print_lite( "unknown_osword " );
+    // swr_print_str( "unknown_osword " );
     // print_newline();
     // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
 
 }

@@ -50,6 +50,4 @@ void print_rom_title() {
     swr_print_space(1);
     swr_print_str( (char*) SWR_Version );
     swr_print_newline();
-    swr_print_newline();
 }
-

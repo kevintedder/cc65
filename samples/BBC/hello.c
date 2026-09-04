@@ -12,17 +12,17 @@
 		// return ( rand() * 0x10000 ) + rand();
 // }	
 
-// void print_sys_time() {
-	// unsigned long sys_time;
-	// int hours, minutes, seconds;
+void print_sys_time() {
+	unsigned long sys_time;
+	int hours, minutes, seconds;
 	
-	// sys_time = get_system_time() / 100;
-	// srand( sys_time );
-	// hours	= sys_time / 3600;
-	// minutes = (sys_time / 60) % 60;
-	// seconds	= sys_time % 60;
-	// printf( "System Time: %02u:%02u:%02u\r\n", hours, minutes, seconds );
-// }
+	sys_time = get_system_time() / 100;
+	srand( sys_time );
+	hours	= sys_time / 3600;
+	minutes = (sys_time / 60) % 60;
+	seconds	= sys_time % 60;
+	printf( "System Time: %02u:%02u:%02u\r\n", hours, minutes, seconds );
+}
 
 // void test1() {
 	// int i;
@@ -43,7 +43,7 @@ void test2() {
 	int i;
 	int xpos, ypos;
 
-	// graphics_window( 150, 300, 1100, 700 );
+	graphics_window( 150, 200, 1100, 600 );
 	gcol( 0, COLOUR_BG_BLUE );
 	clg();
 	
@@ -61,13 +61,25 @@ void test2() {
 
 
 void main(void) {
-
-	mode(2);
+	unsigned long proc_begin, proc_end;
+	unsigned int page, himem;
+	
+	// mode(2);
 	
 	// Initialise Random Seed 
 	srand( get_system_time() );
 
-	// print_sys_time():
+	print_sys_time();
 
+	page = get_oshwm();
+	himem = get_oshimem();
+	printf("Page : %8x, %8u\r\n", page, page );
+	printf("Himem: %8x, %8u\r\n", himem, himem );
+	printf("RAM  : %8x, %8u\r\n", himem - page, himem - page );
+
+
+	proc_begin = get_system_time();
 	test2();	
+	proc_end   = get_system_time();
+	printf("Duration: %8lu\r\n", proc_end - proc_begin );
 }

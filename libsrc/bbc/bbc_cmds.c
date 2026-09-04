@@ -7,42 +7,42 @@
 #define BYTEHIGH(v)   (*(((unsigned char *) (&v) + 1)))
 #define BYTELOW(v)    (*((unsigned char *) (&v)))
 
-int get_osbyte(byte _cmd) {
-  return osbyte(_cmd, 0x00, 0xFF );
+// int get_osbyte(byte _cmd) {
+  // return osbyte(_cmd, 0x00, 0xFF );
+// }
+// int set_osbyte(byte _cmd, byte _value) {
+  // return osbyte(_cmd, _value, 0x00 );
+// }
+
+unsigned int get_oshwm() {
+  return osbyte(131, 0x00, 0xFF );
 }
-int set_osbyte(byte _cmd, byte _value) {
-  return osbyte(_cmd, _value, 0x00 );
+unsigned int set_oshwm(byte _value) {
+  return osbyte(131, _value, 0x00);
 }
 
-int get_oshwm() {
-  return get_osbyte(131) * 256;
+unsigned int get_oshimem() {
+  return osbyte(132, 0x00, 0xFF );
 }
-int set_oshwm(byte _value) {
-  return set_osbyte(131, _value);
-}
-
-int get_oshimem() {
-  return get_osbyte(132) * 256;
-}
-int set_oshimem(byte _value) {
-  return set_osbyte(132, _value);
+unsigned int set_oshimem(byte _value) {
+  return osbyte(132, _value, 0x00);
 }
 
-long get_system_time() {
+unsigned long get_system_time() {
   osword(1, &osword_parameter_block);
   return osword_parameter_block.timer.time;
 }
-long set_system_time(long _time ) {
+unsigned long set_system_time(long _time ) {
   osword_parameter_block.timer.time = _time;
   osword(2, &osword_parameter_block);
   return osword_parameter_block.timer.time;
 }
 
-long get_interval_timer() {
+unsigned long get_interval_timer() {
   osword(3, &osword_parameter_block);
   return osword_parameter_block.timer.time;
 }
-long set_interval_timer(long _time ) {
+unsigned long set_interval_timer(long _time ) {
   osword_parameter_block.timer.time = _time;
   osword(4, &osword_parameter_block);
   return osword_parameter_block.timer.time;

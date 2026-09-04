@@ -42,13 +42,19 @@
 void service_break() {
     // word* tmp;
 
-    // print_lite( "break " );
+    // swr_print_str( "break " );
     // print_newline();
     // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
 
     // tmp = 0xf0;
     // print_byte( tmp );

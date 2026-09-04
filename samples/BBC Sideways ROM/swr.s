@@ -48,10 +48,6 @@
 ;
 ; swr_print_newline();
 ;
-	jsr     _swr_print_newline
-;
-; swr_print_newline();
-;
 	jmp     _swr_print_newline
 
 .endproc

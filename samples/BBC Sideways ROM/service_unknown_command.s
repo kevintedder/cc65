@@ -94,7 +94,7 @@ L0006:	bpl     L0003
 	cmp     #$00
 	bne     L0004
 ;
-; swr_callback(commands[idx].func); // Call the recognised command
+; swr_callback( commands[idx].func ); // Call the recognised command
 ;
 	ldy     #$03
 	lda     (c_sp),y

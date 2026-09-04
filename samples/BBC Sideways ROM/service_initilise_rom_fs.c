@@ -40,12 +40,18 @@
 #include <bbcswr/types.h>
 
 void service_initilise_rom_fs() {
-    // print_lite( "initilise_rom_fs " );
+    // swr_print_str( "initilise_rom_fs " );
     // print_newline();
     // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
 
 }

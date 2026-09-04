@@ -55,13 +55,11 @@
 ; void __near__ __fastcall__ swr_callback (void *cmd_func)
 ; ---------------------------------------------------------------
 
-;	jsr     pushax
 	sta     tmp2		; Save Low Order Address
 	stx     tmp3		; Save High Order Address
-	lda		#$4C		; Load Opcode JMP tmp2 - direct thru tmp2&3
+	lda		#$4C		; Load Opcode JMP into tmp1 - indirect thru 'JMP (tmp2)'
 	sta		tmp1
 	jsr		tmp1		; Call function via tmp1..3
-;	jmp     incsp2
 	rts
 	
 .endproc

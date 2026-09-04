@@ -40,12 +40,18 @@
 #include <bbcswr/types.h>
 
 void service_vector_claim() {
-    // print_lite( "vector_claim " );
+    // swr_print_str( "vector_claim " );
     // print_newline();
     // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
 
 }

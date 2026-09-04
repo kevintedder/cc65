@@ -11,15 +11,131 @@
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.forceimport	__STARTUP__
+	.import		_printf
 	.import		_rand
 	.import		_srand
+	.import		_get_oshwm
+	.import		_get_oshimem
 	.import		_get_system_time
-	.import		_mode
 	.import		_clg
 	.import		_gcol
 	.import		_plot
+	.import		_graphics_window
+	.export		_print_sys_time
 	.export		_test2
 	.export		_main
+
+.segment	"RODATA"
+
+S0001:
+	.byte	$53,$79,$73,$74,$65,$6D,$20,$54,$69,$6D,$65,$3A,$20,$25,$30,$32
+	.byte	$75,$3A,$25,$30,$32,$75,$3A,$25,$30,$32,$75,$0D,$0A,$00
+S0003:
+	.byte	$48,$69,$6D,$65,$6D,$3A,$20,$25,$38,$78,$2C,$20,$25,$38,$75,$0D
+	.byte	$0A,$00
+S0004:
+	.byte	$52,$41,$4D,$20,$20,$3A,$20,$25,$38,$78,$2C,$20,$25,$38,$75,$0D
+	.byte	$0A,$00
+S0002:
+	.byte	$50,$61,$67,$65,$20,$3A,$20,$25,$38,$78,$2C,$20,$25,$38,$75,$0D
+	.byte	$0A,$00
+S0005:
+	.byte	$44,$75,$72,$61,$74,$69,$6F,$6E,$3A,$20,$25,$38,$6C,$75,$0D,$0A
+	.byte	$00
+
+; ---------------------------------------------------------------
+; void __near__ print_sys_time (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_print_sys_time: near
+
+.segment	"CODE"
+
+;
+; sys_time = get_system_time() / 100;
+;
+	ldy     #$0A
+	jsr     subysp
+	jsr     _get_system_time
+	jsr     pusheax
+	lda     #$00
+	lda     #$64
+	ldx     #$00
+	jsr     tosudiv0ax
+	ldy     #$06
+	jsr     steaxysp
+;
+; srand( sys_time );
+;
+	ldy     #$07
+	lda     (c_sp),y
+	tax
+	dey
+	lda     (c_sp),y
+	jsr     _srand
+;
+; hours = sys_time / 3600;
+;
+	ldy     #$09
+	jsr     ldeaxysp
+	jsr     pusheax
+	lda     #$00
+	lda     #$10
+	ldx     #$0E
+	jsr     tosudiv0ax
+	ldy     #$04
+	jsr     staxysp
+;
+; minutes = (sys_time / 60) % 60;
+;
+	ldy     #$09
+	jsr     ldeaxysp
+	jsr     pusheax
+	lda     #$00
+	lda     #$3C
+	ldx     #$00
+	jsr     tosudiv0ax
+	jsr     pusheax
+	lda     #$00
+	lda     #$3C
+	ldx     #$00
+	jsr     tosumod0ax
+	ldy     #$02
+	jsr     staxysp
+;
+; seconds = sys_time % 60;
+;
+	ldy     #$09
+	jsr     ldeaxysp
+	jsr     pusheax
+	lda     #$00
+	lda     #$3C
+	ldx     #$00
+	jsr     tosumod0ax
+	jsr     stax0sp
+;
+; printf( "System Time: %02u:%02u:%02u\r\n", hours, minutes, seconds );
+;
+	lda     #<(S0001)
+	ldx     #>(S0001)
+	jsr     pushax
+	ldy     #$09
+	jsr     pushwysp
+	ldy     #$09
+	jsr     pushwysp
+	ldy     #$09
+	jsr     pushwysp
+	ldy     #$08
+	jsr     _printf
+;
+; }
+;
+	ldy     #$0A
+	jmp     addysp
+
+.endproc
 
 ; ---------------------------------------------------------------
 ; void __near__ test2 (void)
@@ -32,9 +148,34 @@
 .segment	"CODE"
 
 ;
+; graphics_window( 150, 200, 1100, 600 );
+;
+	ldy     #$0C
+	jsr     subysp
+	lda     #$96
+	ldy     #$04
+	sta     (c_sp),y
+	iny
+	lda     #$00
+	sta     (c_sp),y
+	lda     #$C8
+	ldy     #$02
+	sta     (c_sp),y
+	iny
+	lda     #$00
+	sta     (c_sp),y
+	lda     #$4C
+	ldy     #$00
+	sta     (c_sp),y
+	iny
+	lda     #$04
+	sta     (c_sp),y
+	ldx     #$02
+	lda     #$58
+	jsr     _graphics_window
+;
 ; gcol( 0, COLOUR_BG_BLUE );
 ;
-	jsr     decsp6
 	lda     #$00
 	jsr     pusha
 	lda     #$84
@@ -141,19 +282,120 @@ L0003:	jmp     incsp6
 .segment	"CODE"
 
 ;
-; mode(2);
-;
-	lda     #$02
-	jsr     _mode
-;
 ; srand( get_system_time() );
 ;
+	ldy     #$0C
+	jsr     subysp
 	jsr     _get_system_time
 	jsr     _srand
 ;
+; print_sys_time();
+;
+	jsr     _print_sys_time
+;
+; page = get_oshwm();
+;
+	jsr     _get_oshwm
+	ldy     #$02
+	jsr     staxysp
+;
+; himem = get_oshimem();
+;
+	jsr     _get_oshimem
+	jsr     stax0sp
+;
+; printf("Page : %8x, %8u\r\n", page, page );
+;
+	lda     #<(S0002)
+	ldx     #>(S0002)
+	jsr     pushax
+	ldy     #$07
+	jsr     pushwysp
+	ldy     #$09
+	jsr     pushwysp
+	ldy     #$06
+	jsr     _printf
+;
+; printf("Himem: %8x, %8u\r\n", himem, himem );
+;
+	lda     #<(S0003)
+	ldx     #>(S0003)
+	jsr     pushax
+	ldy     #$05
+	jsr     pushwysp
+	ldy     #$07
+	jsr     pushwysp
+	ldy     #$06
+	jsr     _printf
+;
+; printf("RAM  : %8x, %8u\r\n", himem - page, himem - page );
+;
+	lda     #<(S0004)
+	ldx     #>(S0004)
+	jsr     pushax
+	ldy     #$03
+	lda     (c_sp),y
+	tax
+	dey
+	lda     (c_sp),y
+	sec
+	ldy     #$04
+	sbc     (c_sp),y
+	pha
+	txa
+	iny
+	sbc     (c_sp),y
+	tax
+	pla
+	jsr     pushax
+	ldy     #$05
+	lda     (c_sp),y
+	tax
+	dey
+	lda     (c_sp),y
+	sec
+	ldy     #$06
+	sbc     (c_sp),y
+	pha
+	txa
+	iny
+	sbc     (c_sp),y
+	tax
+	pla
+	jsr     pushax
+	ldy     #$06
+	jsr     _printf
+;
+; proc_begin = get_system_time();
+;
+	jsr     _get_system_time
+	ldy     #$08
+	jsr     steaxysp
+;
 ; test2(); 
 ;
-	jmp     _test2
+	jsr     _test2
+;
+; proc_end   = get_system_time();
+;
+	jsr     _get_system_time
+	ldy     #$04
+	jsr     steaxysp
+;
+; printf("Duration: %8lu\r\n", proc_end - proc_begin );
+;
+	lda     #<(S0005)
+	ldx     #>(S0005)
+	jsr     pushax
+	ldy     #$09
+	jsr     ldeaxysp
+	jsr     pusheax
+	ldy     #$11
+	jsr     ldeaxysp
+	jsr     tossubeax
+	jsr     pusheax
+	ldy     #$06
+	jmp     _printf
 
 .endproc
 

@@ -6,16 +6,16 @@
 #define BYTEHIGH(v)   (*(((unsigned char *) (&v) + 1)))
 #define BYTELOW(v)    (*((unsigned char *) (&v)))
 
-int get_osbyte(byte _cmd);
-int set_osbyte(byte _cmd, byte _value);
-int get_oshwm();
-int set_oshwm(byte _value);
-int get_oshimem();
-int set_oshimem(byte _value);
-long get_system_time();
-long set_system_time(long _time );
-long get_interval_timer();
-long set_interval_timer(long _time );
+// int get_osbyte(byte _cmd);
+// int set_osbyte(byte _cmd, byte _value);
+unsigned int get_oshwm();
+unsigned int set_oshwm(byte _value);
+unsigned int get_oshimem();
+unsigned int set_oshimem(byte _value);
+unsigned long get_system_time();
+unsigned long set_system_time(long _time );
+unsigned long get_interval_timer();
+unsigned long set_interval_timer(long _time );
 void sleep(int _delay);
 
 void envelope(byte _number, byte _length ,

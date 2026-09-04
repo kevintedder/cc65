@@ -145,11 +145,11 @@ zip:
 	$(foreach dir,$(OUTPUTDIRS),$(ZIP_recipe))
 
 $(TARGETS): | ../lib
-	@$(MAKE) $(PD) $@ $(PQ)
+	$(MAKE) $(PD) $@ $(PQ)
 
 # ../lib must be created globally before doing lib targets in parallel
 ../lib:
-	@$(call MKDIR,$@)
+	$(call MKDIR,$@)
 
 else # TARGET
 
@@ -270,14 +270,14 @@ $$($1_STCPAT): $$($1_SRCPAT)
 OBJS += $$($1_STCS)
 DEPS += $$($1_STCS:.o=.d)
 
-$$($1_DYNS): | $$($1_DYNDIR)
+$$($1_DYNS): | $$($1_Ddbg_print_workspaceYNDIR)
 
 $$($1_DRVPAT): $$($1_DYNPAT) $$(ZPOBJ) | $$($1_DRVDIR)
 	$$(if $$(QUIET),@echo $$(TARGET) - $$(<F))
 	$$(LD65) -o $$@ -t module $$^
 
 $$($1_DYNDIR) $$($1_DRVDIR):
-	@$$(call MKDIR,$$@)
+	$$(call MKDIR,$$@)
 
 $(TARGET): $$($1_DRVS)
 
@@ -296,34 +296,34 @@ export CC65_HOME := $(abspath ..)
 
 define ASSEMBLE_recipe
 
-    $(if $(QUIET),@echo $(TARGET) - $<)
-    $(CA65) -t $(TARGET) $(CA65FLAGS) --create-dep $(@:.o=.d) -o $@ $<
+    @$(if $(QUIET),@echo $(TARGET) - $<)
+    @$(CA65) -t $(TARGET) $(CA65FLAGS) --create-dep $(@:.o=.d) -o $@ $<
 
 endef # ASSEMBLE_recipe
 
 define COMPILE_recipe
 
-    $(if $(QUIET),@echo $(TARGET) - $<)
-    $(CC65) -t $(TARGET) $(CC65FLAGS) --create-dep $(@:.o=.d) --dep-target $@ -o $(@:.o=.s) $<
-    $(CA65) -t $(TARGET) -o $@ $(@:.o=.s)
+    @$(if $(QUIET),@echo $(TARGET) - $<)
+    @$(CC65) -t $(TARGET) $(CC65FLAGS) --create-dep $(@:.o=.d) --dep-target $@ -o $(@:.o=.s) $<
+    @$(CA65) -t $(TARGET) -o $@ $(@:.o=.s)
 
 endef # COMPILE_recipe
 
 ../libwrk/$(TARGET)/%.o: %.s | ../libwrk/$(TARGET)
-	$(ASSEMBLE_recipe)
+	@$(ASSEMBLE_recipe)
 
 ../libwrk/$(TARGET)/%.o: %.c | ../libwrk/$(TARGET)
-	$(COMPILE_recipe)
+	@$(COMPILE_recipe)
 
 $(EXTRA_OBJPAT): $(EXTRA_SRCPAT) | ../libwrk/$(TARGET) ../lib
-	$(if $(QUIET),@echo $(TARGET) - $(<F))
-	$(CA65) -t $(TARGET) $(CA65FLAGS) --create-dep $(@:../lib/%.o=../libwrk/$(TARGET)/%.d) -o $@ $<
+	@$(if $(QUIET),@echo $(TARGET) - $(<F))
+	@$(CA65) -t $(TARGET) $(CA65FLAGS) --create-dep $(@:../lib/%.o=../libwrk/$(TARGET)/%.d) -o $@ $<
 
 $(EXTRA_OBJS): | ../lib
 
 ../lib/$(TARGET).lib: $(OBJS) | ../lib
-	$(if $(QUIET),@echo $(TARGET) - $<)
-	$(AR65) a $@ $?
+	@$(if $(QUIET),@echo $(TARGET) - $<)
+	@$(AR65) a $@ $?
 
 ../libwrk/$(TARGET) ../target/$(TARGET)/util:
 	@$(call MKDIR,$@)

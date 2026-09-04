@@ -39,22 +39,31 @@
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-
 #define configure_pws           // Optional - If defined, include code to claim Private workspace
 
 
 void service_claim_private_ws() {
-    // print_lite( "claim_private_ws" );
-    // print_newline();
-    // print_cpu_registers();
-    // print_workspace();
+	byte ws;
 
-#ifdef configure_pws
-    Yreg += ( sizeof(struct pws) / 256 ) + 1;   // Struct pws declared in /include/bbcswr/swr.h
-    paged_rom_ws[Xreg] = Yreg;          // Save PWS pointer into Paged ROM Workspace Storage @ 0x0df0
-    pws = Yreg * 256;                   // Define how many pages required for private workspace
+    // swr_print_str( "claim_private_ws" );
+    // swr_print_newline();
+    // dbg_print_cpu_registers();
+    // dbg_print_workspace();
+
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
 #endif
 
-    // print_cpu_registers();
+#ifdef configure_pws
+    ws = Yreg + ( sizeof(struct pws) / 256 ) + 1;	// Struct pws declared in /include/bbcswr/swr.h
+    paged_rom_ws[Xreg] = ws;						// Save PWS pointer into Paged ROM Workspace Storage @ 0x0df0
+    pws = (struct pws *)(ws * 256);					// Define how many pages required for private workspace
+	Yreg = ws;
+#endif
+
+    // dbg_print_cpu_registers();
+    // dbg_print_workspace();
 }
 

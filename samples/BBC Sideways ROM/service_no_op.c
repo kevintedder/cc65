@@ -45,5 +45,11 @@ void service_no_op() {                  // Do nothing, but allows you to do some
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+#ifdef SWR_DEBUG
+    swr_print_str( SERVICE_NAME );
+	dbg_print_byte( Areg );
+    swr_print_newline();
+#endif
+
 }
 

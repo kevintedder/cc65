@@ -8,7 +8,7 @@ struct osword_block {
 
 typedef struct osword_timer_block osword_timer_block;
 struct osword_timer_block {
-  long time;
+  unsigned long time;
   byte time2;
 };
 

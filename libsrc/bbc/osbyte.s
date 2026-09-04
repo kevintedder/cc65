@@ -20,7 +20,7 @@
 
 
 ; ---------------------------------------------------------------
-; unsigned char __near__ osbyte ( byte A_reg, byte X_reg, byte Y_reg)
+; unsigned unsigned int __near__ osbyte ( byte A_reg, byte X_reg, byte Y_reg)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -29,27 +29,31 @@
 
 .segment	"CODE"
 
-	jsr     pusha       ; Push Y_reg
+	jsr     pusha			; Push unsigned byte Y_reg onto C stack
 
-	ldy     #$02        ;
-	lda     (c_sp),y    ; Pull A_reg off of the C stack
-	pha                 ; Push A_reg to CPU stack
+	ldy     #$02			;
+	lda     (c_sp),y		; Pull A_reg off of the C stack
+	pha						; Push A_reg to CPU stack
   
 	dey
-	lda     (c_sp),y    ; Pull X_reg off of the C stack
-	tax                 ; Set X_reg
+	lda     (c_sp),y		; Pull X_reg off of the C stack
+	tax						; Set X_reg
   
 	dey
-	lda     (c_sp),y    ; Pull Y_reg off of the C stack
-	tay                 ; Set Y_reg
+	lda     (c_sp),y		; Pull Y_reg off of the C stack
+	tay						; Set Y_reg
   
-	pla                 ; Pull A reg off CPU stack
+	pla						; Pull A reg off CPU stack
 
-	jsr     OSBYTE      ; Returned value in X(low) Y(High)
+	jsr     OSBYTE			; Returned value in X(low) Y(High)
 
-	tya					; Move XY to AX and return
-	ldx		#$00
-  
+							; Move XY to AX and return
+	stx		tmp1			; Low Byte
+	sty		tmp2			; High Byte
+
+	lda		tmp1			; Low Byte
+	ldx		tmp2			; High Byte
+
 	jmp     incsp3
 
 .endproc

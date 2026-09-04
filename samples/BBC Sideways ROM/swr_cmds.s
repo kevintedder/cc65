@@ -68,15 +68,15 @@ _commands:
 	.addr	_desc5
 	.addr	_func5
 S0015:
-	.byte	$66,$75,$6E,$63,$34,$00
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$34,$00
 S0012:
-	.byte	$66,$75,$6E,$63,$33,$00
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$33,$00
 S000F:
-	.byte	$66,$75,$6E,$63,$32,$00
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$32,$00
 S000C:
-	.byte	$66,$75,$6E,$63,$31,$00
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$31,$00
 S0018:
-	.byte	$66,$75,$6E,$63,$35,$00
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$35,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ func1 (void)
@@ -89,7 +89,7 @@ S0018:
 .segment	"CODE"
 
 ;
-; swr_print_str("func1");
+; swr_print_str("Cmd: Func 1");
 ;
 	lda     #<(S000C)
 	ldx     #>(S000C)
@@ -112,7 +112,7 @@ S0018:
 .segment	"CODE"
 
 ;
-; swr_print_str("func2");
+; swr_print_str("Cmd: Func 2");
 ;
 	lda     #<(S000F)
 	ldx     #>(S000F)
@@ -135,7 +135,7 @@ S0018:
 .segment	"CODE"
 
 ;
-; swr_print_str("func3");
+; swr_print_str("Cmd: Func 3");
 ;
 	lda     #<(S0012)
 	ldx     #>(S0012)
@@ -158,7 +158,7 @@ S0018:
 .segment	"CODE"
 
 ;
-; swr_print_str("func4");
+; swr_print_str("Cmd: Func 4");
 ;
 	lda     #<(S0015)
 	ldx     #>(S0015)
@@ -181,7 +181,7 @@ S0018:
 .segment	"CODE"
 
 ;
-; swr_print_str("func5");
+; swr_print_str("Cmd: Func 5");
 ;
 	lda     #<(S0018)
 	ldx     #>(S0018)

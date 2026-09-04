@@ -172,7 +172,7 @@
 ;
 ; void plot(byte k, int x, int y) {
 ;
-	jsr     pushax
+	jsr     pushax			; Push unsigned int _y onto C stack
 ;
 ; oswrch(25);
 ;

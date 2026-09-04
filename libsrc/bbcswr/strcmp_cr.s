@@ -4,7 +4,7 @@
 ; /*                                                                           */
 ; /*    A lightweight string compare function for cc65 for BBC sideways ROM    */
 ; /*                                                                           */
-; /*    Since BBC strings are <CR> terminated this function can compare        */
+; /*    Since BBC strings are <CR> terminated, this function can compare       */
 ; /*    both BBC & 'C' strings. It uses <NULL>, <CR> & <DOT> as terminators    */
 ; /*                                                                           */
 ; /*                                                                           */

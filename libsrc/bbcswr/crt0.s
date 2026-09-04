@@ -34,7 +34,7 @@
 ; /*****************************************************************************/
 
 	.include	"bbc/os.inc"
-	.include	"swr.inc"
+	.include	"bbcswr/swr.inc"	; This includes a Dummy ROM Title, override with new file in SAMPLES/BBCSWR
 
 	.import		_service_no_op
 	.import		_service_claim_absolute_ws
@@ -57,12 +57,31 @@
 	.import		_service_filesystem_init
 	.import		_service_tube_post_init
 	.import		_service_tube_main_init
+	.import		_service_char_in_rs232_buffer
+	.import		_service_char_in_print_buffer
+	.import		_service_10hz_poll
+	.import		_service_bell_request
+	.import		_service_sound_buffer_purged
+	.import		_service_interactive_help
+	.import		_service_claim_aws_hazel
+	.import		_service_claim_pws_hazel
+	.import		_service_top_aws_hazel
+	.import		_service_request_pws_hazel
+	.import		_service_return_filesys_info
+	.import		_service_shut_issued
+	.import		_service_reset_call
+	.import		_service_unknown_conf_cmd
+	.import		_service_unknown_status
+	.import		_service_language_init
+	.import		_service_swram_size
+	.import		_service_joystick
+
 
 	.import		decsp2, decsp4, incsp2, incsp4
 	.import		_itoa, pushax, steax0sp
 	.import		_osbyte
 	
- 	.export		_exit_bits
+ 	; .export		_exit_bits
 	.export		__STARTUP__ : absolute = 1        ; Mark as startup
 	.export		_SWR_Title, _SWR_Version
 	.export		_paged_rom_ws
@@ -85,8 +104,8 @@
 ; moved within Page Zero if they clash with other services
 
 ;	Using Zeropage $f8 - $fb ; OS temporaray workspace
-	_aws		= $f8		; 16 Bit pointer to Absolute Workspace exported to 'C'
-	_pws		= $fa		; 16 Bit pointer to Private Workspace exported to 'C'
+	_aws		= $f8		; 16 Bit pointer (&f8/&f9) to Absolute Workspace exported to 'C'
+	_pws		= $fa		; 16 Bit pointer (&fa/&fb) to Private Workspace exported to 'C'
 
 ;	OS Zeropage general workspace
 	_Areg		= $e4		; 8 Bit - Save __A__ Reg during service call
@@ -121,45 +140,61 @@ service:
 
 
 SWR_HEADER							; Macro to define this ROM's identity
+									; refer to asminc/bbcswr/swr.inc
 
 
 ; .segment	"CODE"
 ; ------------------------------------------------------------------------
 ; A table of service routines used by the service entry point
 _service_index_table:
-	.addr		_service0			; No Operation
-	.addr		_service1			; stake a claim for Asbolute WorkSpace
-	.addr		_service2			; Stake a claim for Private Workspace
-	.addr		_service3			; Auto_Boot initialise
-	.addr		_service4			; Unrecognised command
-	.addr		_service5			; Unrecognised interrupt
-	.addr		_service6			; process Break interrupt
-	.addr		_service7			; Unrecognised OSBYTE
-	.addr		_service8			; Unrecognised OSWORD
-	.addr		_service9			; Help command
-	.addr		_service10			; Claim absolute static workspace
-	.addr		_service11			; NMI release
-	.addr		_service12			; NMI Claim
-	.addr		_service13			; Initialise ROM filing system
-	.addr		_service14			; ROM filing systemget byte
-	.addr		_service15			; Claim vectors
-	.addr		_service16			; SPOOL/EXEC file closure
-	.addr		_service17			; Font implosion/explosion warning
-	.addr		_service18			; Initialise filing system
-	; .addr		_service19
-	; .addr		_service20
-	; .addr		_service21
-	; .addr		_service22
-	; .addr		_service23
-	; .addr		_service24
-	; .addr		_service25
-	; .addr		_service26
-	; .addr		_service27
-	; .addr		_service28
-	; .addr		_service29
-	; .addr		_service30
-	; .addr		_service31
-
+	.addr		_service0			; 0x00 No Operation
+	.addr		_service1			; 0x01 stake a claim for Asbolute WorkSpace
+	.addr		_service2			; 0x02 Stake a claim for Private Workspace
+	.addr		_service3			; 0x03 Auto_Boot initialise
+	.addr		_service4			; 0x04 Unrecognised command
+	.addr		_service5			; 0x05 Unrecognised interrupt
+	.addr		_service6			; 0x06 process Break interrupt
+	.addr		_service7			; 0x07 Unrecognised OSBYTE
+	.addr		_service8			; 0x08 Unrecognised OSWORD
+	.addr		_service9			; 0x09 Help command
+	.addr		_service10			; 0x0A Claim absolute static workspace
+	.addr		_service11			; 0x0B NMI release
+	.addr		_service12			; 0x0C NMI Claim
+	.addr		_service13			; 0x0D Initialise ROM filing system
+	.addr		_service14			; 0x0E ROM filing systemget byte
+	.addr		_service15			; 0x0F Claim vectors
+	.addr		_service16			; 0x10 SPOOL/EXEC file closure
+	.addr		_service17			; 0x11 Font implosion/explosion warning
+	.addr		_service18			; 0x12 Initialise filing system
+	.addr		_service19			; 0x13 char in rs232 buffer
+	.addr		_service20			; 0x14 char in print buffer
+	.addr		_service21			; 0x15 10hz poll
+	.addr		_service22			; 0x16 bell request
+	.addr		_service23			; 0x17 sound buffer purged
+	.addr		_service24			; 0x18 interactive help
+	.addr		_service25			; 0x19 claim aws hazel
+	.addr		_service26			; 0x1A 
+	.addr		_service27			; 0x1B
+	.addr		_service28			; 0x1C
+	.addr		_service29			; 0x1D
+	.addr		_service30			; 0x1E
+	.addr		_service31			; 0x1F
+	.addr		_service32			; 0x20
+	.addr		_service33			; 0x21 claim aws hazel
+	.addr		_service34			; 0x22 claim pws hazel
+	.addr		_service35			; 0x23 top aws hazel
+	.addr		_service36			; 0x24 request pws hazel
+	.addr		_service37			; 0x25 return filesys info
+	.addr		_service38			; 0x26 shut issued
+	.addr		_service39			; 0x27 reset call
+	.addr		_service40			; 0x28 unknown conf cmd
+	.addr		_service41			; 0x29 unknown status
+	.addr		_service42			; 0x2A language init
+	.addr		_service43			; 0x2B swram size
+	.addr		_service44			; 0x2C joystick
+	.addr		_service45			; 0x2D 
+	.addr		_service46			; 0x2E 
+	.addr		_service47			; 0x2F  
 	.addr		_service254			; TUBE port initialisation
 	.addr		_service255			; TUBE main initialisation
 
@@ -181,11 +216,11 @@ _service_entry_point:
 
 	jsr		_save_regs				; Preserve Reg __A__, __X__, __Y__ to page zero throughout service call
 
-	cmp		#32						; Compare Service Call ID 
-	bcc		_service0_31			;     < 32
-	jmp		_service32_255			;     >= 32
+	cmp		#48						; Compare Service Call ID 
+	bcc		_service0_48			;     < 48
+	jmp		_service48_255			;     >= 48
 
-_service0_31:
+_service0_48:
 
 	asl		a 						; Multiply by 2, point into 16-bit address table
 	tax								; Move Service ID to X
@@ -295,22 +330,127 @@ _service18:
 	jmp		_service_routine_post_call
 
 _service19:
+	jsr		_service_routine_pre_call
+	jsr		_service_char_in_rs232_buffer
+	jmp		_service_routine_post_call
+
 _service20:
+	jsr		_service_routine_pre_call
+	jsr		_service_char_in_print_buffer
+	jmp		_service_routine_post_call
+
 _service21:
+	jsr		_service_routine_pre_call
+	jsr		_service_10hz_poll
+	jmp		_service_routine_post_call
+
 _service22:
+	jsr		_service_routine_pre_call
+	jsr		_service_bell_request
+	jmp		_service_routine_post_call
+
 _service23:
+	jsr		_service_routine_pre_call
+	jsr		_service_sound_buffer_purged
+	jmp		_service_routine_post_call
+
 _service24:
+	jsr		_service_routine_pre_call
+	jsr		_service_interactive_help
+	jmp		_service_routine_post_call
+
 _service25:
+	jsr		_service_routine_pre_call
+	jsr		_service_claim_aws_hazel
+	jmp		_service_routine_post_call
+
+; ROM Services 26 - 32 do not exists. These call are moved to the end of this list.
+;_service26:
+;_service27:
+;_service28:
+;_service29:
+;_service30:
+;_service31:
+;_service32:
+
+_service33:
+	jsr		_service_routine_pre_call
+	jsr		_service_claim_aws_hazel
+	jmp		_service_routine_post_call
+
+_service34:
+	jsr		_service_routine_pre_call
+	jsr		_service_claim_pws_hazel
+	jmp		_service_routine_post_call
+
+_service35:
+	jsr		_service_routine_pre_call
+	jsr		_service_top_aws_hazel
+	jmp		_service_routine_post_call
+
+_service36:
+	jsr		_service_routine_pre_call
+	jsr		_service_request_pws_hazel
+	jmp		_service_routine_post_call
+
+_service37:
+	jsr		_service_routine_pre_call
+	jsr		_service_return_filesys_info
+	jmp		_service_routine_post_call
+
+_service38:
+	jsr		_service_routine_pre_call
+	jsr		_service_shut_issued
+	jmp		_service_routine_post_call
+
+_service39:
+	jsr		_service_routine_pre_call
+	jsr		_service_reset_call
+	jmp		_service_routine_post_call
+
+_service40:
+	jsr		_service_routine_pre_call
+	jsr		_service_unknown_conf_cmd
+	jmp		_service_routine_post_call
+
+_service41:
+	jsr		_service_routine_pre_call
+	jsr		_service_unknown_status
+	jmp		_service_routine_post_call
+
+_service42:
+	jsr		_service_routine_pre_call
+	jsr		_service_language_init
+	jmp		_service_routine_post_call
+
+_service43:
+	jsr		_service_routine_pre_call
+	jsr		_service_swram_size
+	jmp		_service_routine_post_call
+
+_service44:
+	jsr		_service_routine_pre_call
+	jsr		_service_joystick
+	jmp		_service_routine_post_call
+
+
 _service26:
 _service27:
 _service28:
 _service29:
 _service30:
 _service31:
+_service32:
+
+_service45:
+_service46:
+_service47:
+
+
 	jmp		_service_unknown
 
 
-_service32_255:
+_service48_255:
 
 ; ------------------------------------------------------------------------
 _service254:
@@ -328,13 +468,13 @@ _service255:
 
 	jsr		_service_routine_pre_call
 	jsr		_service_tube_main_init
-	jmp		_service_routine_post_call
+	; jmp		_service_routine_post_call
 
 _service_unknown:					; ROM Service call not identified
 	jmp		_service_routine_post_call
 
-_exit_bits:
-	rts
+; _exit_bits:
+	; rts
 
 ; ------------------------------------------------------------------------
 _service_routine_pre_call:			;	Setup the CC65 'C' environment
@@ -401,8 +541,7 @@ _service_routine_post_call:			; Tidy up after calling service routine and
 _claim_vectors:						; Claim vectors
 	ldx		#$0f					; Service Request - Claim Vectors
 	ldy		#$00					; Argument is null
-	jsr     _issue_rom_service_call
-	rts
+	jmp     _issue_rom_service_call
 
 ; ------------------------------------------------------------------------
 _claim_absolute_static_workspace:	; Claim ownership of Absolute Work Space (AWS)
@@ -414,8 +553,7 @@ _claim_absolute_static_workspace:	; Claim ownership of Absolute Work Space (AWS)
 
 	ldx		#$0a					; Service Request - Claim Static Workspace
 	ldy		#$00					; Argument is null
-	jsr		_issue_rom_service_call
-	rts
+	jmp		_issue_rom_service_call
 
 ; ------------------------------------------------------------------------
 _release_absolute_static_workspace:	; Release ownership of Absolute Work Space (AWS)

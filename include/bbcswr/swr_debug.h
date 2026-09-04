@@ -36,7 +36,11 @@
 #ifndef SWR_DEBUG_H
 #define SWR_DEBUG_H
 
+// #define SWR_DEBUG
+
 #include <bbc/types.h>
+
+#define SERVICE_NAME "SC:"
 
 //  ################################################################################
 //  ### THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out ###

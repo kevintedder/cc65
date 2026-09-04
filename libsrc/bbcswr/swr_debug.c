@@ -32,8 +32,8 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include <bbc/swr_print_lite.h>
-#include <bbc/swr.h>
+#include <bbcswr/swr_print_lite.h>
+#include <bbcswr/swr.h>
 #include <bbc/types.h>
 
 //  ################################################################################
@@ -69,13 +69,13 @@ void dbg_print_cpu_registers() {
     dbg_print_byte( Yreg);
     swr_print_newline();
 }
-// void dbg_print_workspace() {
-//     swr_print_str( " AWS:" );
-//     print_word( (word) &aws );
-//     swr_print_str( " PWS:" );
-//     print_word( (word) pws );
-//     swr_print_newline();
-// }
+void dbg_print_workspace() {
+    swr_print_str( " AWS:" );
+    dbg_print_word( (word) aws );
+    swr_print_str( " PWS:" );
+    dbg_print_word( (word) pws );
+    swr_print_newline();
+}
 
 
 /*

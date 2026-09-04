@@ -10,6 +10,7 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
+	.importzp	_aws
 	.importzp	_Yreg
 	.export		_service_claim_absolute_ws
 
@@ -24,10 +25,10 @@
 .segment	"CODE"
 
 ;
-; ws = 0x0e + ( sizeof(struct aws) / 256 ) + 1;   // Start with OSHWM + size of AWS in 256 byte pages + 1
+; ws = 0x0e + ( sizeof(struct aws) / 256 );   // Start with OSHWM + size of AWS in 256 byte pages + 1
 ;
 	jsr     decsp1
-	lda     #$0F
+	lda     #$0E
 	ldy     #$00
 	sta     (c_sp),y
 ;
@@ -36,6 +37,12 @@
 	cmp     _Yreg
 	bcc     L0002
 	beq     L0002
+;
+; aws = (struct aws *)0x0e00;
+;
+	tax
+	sty     _aws
+	stx     _aws+1
 ;
 ; Yreg = ws;
 ;

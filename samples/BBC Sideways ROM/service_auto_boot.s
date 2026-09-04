@@ -10,6 +10,7 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
+	.import		_swr_print_newline
 	.import		_print_rom_title
 	.export		_service_auto_boot
 
@@ -26,7 +27,11 @@
 ;
 ; print_rom_title();
 ;
-	jmp     _print_rom_title
+	jsr     _print_rom_title
+;
+; swr_print_newline();
+;
+	jmp     _swr_print_newline
 
 .endproc
 

@@ -31,14 +31,14 @@ S0001:
 	.byte	$53,$79,$73,$74,$65,$6D,$20,$54,$69,$6D,$65,$3A,$20,$25,$30,$32
 	.byte	$75,$3A,$25,$30,$32,$75,$3A,$25,$30,$32,$75,$0D,$0A,$00
 S0003:
-	.byte	$48,$69,$6D,$65,$6D,$3A,$20,$25,$38,$78,$2C,$20,$25,$38,$75,$0D
-	.byte	$0A,$00
+	.byte	$48,$69,$6D,$65,$6D,$3A,$20,$30,$78,$25,$34,$78,$2C,$20,$25,$35
+	.byte	$75,$0D,$0A,$00
 S0004:
-	.byte	$52,$41,$4D,$20,$20,$3A,$20,$25,$38,$78,$2C,$20,$25,$38,$75,$0D
-	.byte	$0A,$00
+	.byte	$52,$41,$4D,$20,$20,$3A,$20,$30,$78,$25,$34,$78,$2C,$20,$25,$35
+	.byte	$75,$0D,$0A,$00
 S0002:
-	.byte	$50,$61,$67,$65,$20,$3A,$20,$25,$38,$78,$2C,$20,$25,$38,$75,$0D
-	.byte	$0A,$00
+	.byte	$50,$61,$67,$65,$20,$3A,$20,$30,$78,$25,$34,$78,$2C,$20,$25,$35
+	.byte	$75,$0D,$0A,$00
 S0005:
 	.byte	$44,$75,$72,$61,$74,$69,$6F,$6E,$3A,$20,$25,$38,$6C,$75,$0D,$0A
 	.byte	$00
@@ -148,7 +148,7 @@ S0005:
 .segment	"CODE"
 
 ;
-; graphics_window( 150, 200, 1100, 600 );
+; graphics_window( 150, 100, 1100, 400 );
 ;
 	ldy     #$0C
 	jsr     subysp
@@ -158,7 +158,7 @@ S0005:
 	iny
 	lda     #$00
 	sta     (c_sp),y
-	lda     #$C8
+	lda     #$64
 	ldy     #$02
 	sta     (c_sp),y
 	iny
@@ -170,8 +170,8 @@ S0005:
 	iny
 	lda     #$04
 	sta     (c_sp),y
-	ldx     #$02
-	lda     #$58
+	ldx     #$01
+	lda     #$90
 	jsr     _graphics_window
 ;
 ; gcol( 0, COLOUR_BG_BLUE );
@@ -304,7 +304,7 @@ L0003:	jmp     incsp6
 	jsr     _get_oshimem
 	jsr     stax0sp
 ;
-; printf("Page : %8x, %8u\r\n", page, page );
+; printf("Page : 0x%4x, %5u\r\n", page, page );
 ;
 	lda     #<(S0002)
 	ldx     #>(S0002)
@@ -316,7 +316,7 @@ L0003:	jmp     incsp6
 	ldy     #$06
 	jsr     _printf
 ;
-; printf("Himem: %8x, %8u\r\n", himem, himem );
+; printf("Himem: 0x%4x, %5u\r\n", himem, himem );
 ;
 	lda     #<(S0003)
 	ldx     #>(S0003)
@@ -328,7 +328,7 @@ L0003:	jmp     incsp6
 	ldy     #$06
 	jsr     _printf
 ;
-; printf("RAM  : %8x, %8u\r\n", himem - page, himem - page );
+; printf("RAM  : 0x%4x, %5u\r\n", himem - page, himem - page );
 ;
 	lda     #<(S0004)
 	ldx     #>(S0004)

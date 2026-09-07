@@ -14,4 +14,4 @@ rem Check to see if and new library modules need to be updated
 @make -r all
 
 @rem  copy ROM image to BEEBEM folder
-rem copy swr.rom  C:\Users\kevin\Documents\BeebEm\BeebFile\sideways_rom.rom
+@rem copy swr.rom  C:\Users\kevin\Documents\BeebEm\BeebFile\sideways_rom.rom

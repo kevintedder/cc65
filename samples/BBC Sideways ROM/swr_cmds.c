@@ -2,7 +2,7 @@
 /*                                                                           */
 /*             S I D E W A Y S   R O M   C O M M A N D S                     */
 /*                                                                           */
-/* Define the command to be used by this Sideways ROM                        */
+/* Define the commands to be used by this Sideways ROM                       */
 /*                                                                           */
 /* Each command is defined by:                                               */
 /* 		const char cmd1[]  = "F1";		// The name of the command           */
@@ -51,64 +51,41 @@
 #include <bbcswr/swr_debug.h>
 #include <bbc/types.h>
 
-/*
-	Use of CONST qualifier forces data in RODATA segment for Sideways ROM
-*/
-
-const char cmd1[]  = "F1";
-const char desc1[] = "abc";
 void func1() {
 	swr_print_str("Cmd: Func 1");
 	swr_print_newline();
 }
 
-const char cmd2[]  = "F2";
-const char desc2[] = "def";
 void func2() {
 	swr_print_str("Cmd: Func 2");
 	swr_print_newline();
 }
 
-const char cmd3[]  = "F3";
-const char desc3[] = "ghi";
 void func3() {
 	swr_print_str("Cmd: Func 3");
 	swr_print_newline();
 }
 
-const char cmd4[]  = "F4";
-const char desc4[] = "ghi";
 void func4() {
 	swr_print_str("Cmd: Func 4");
 	swr_print_newline();
 }
 
-const char cmd5[]  = "F5";
-const char desc5[] = "ghi";
 void func5() {
 	swr_print_str("Cmd: Func 5");
 	swr_print_newline();
 }
 
+//	###  Update the cmd_count in swr_cmds.h ###
 
 /*
-// Extend <N> for more commands 
-const char cmd<N>[]  = "F<N>";
-const char desc<N>[] = "ghi";
-void func<N>() {
-	swr_print_str("func<N>");
-	swr_print_newline();
-}
-
-//	###  Update the cmd_count in swr_cmds.h ###
+	Use of CONST qualifier forces data in RODATA segment for Sideways ROM
 */
-
-const struct cmd commands[cmd_count] = { 
-				{ (char *)cmd1, (char *)desc1, func1 }, 
-				{ (char *)cmd2, (char *)desc2, func2 }, 
-				{ (char *)cmd3, (char *)desc3, func3 }, 
-				{ (char *)cmd4, (char *)desc4, func4 }, 
-				{ (char *)cmd5, (char *)desc5, func5 }
+//					Command, Description, Callback Function
+const struct cmd commands[] = { 
+							{ "F1", "abc", func1 },
+							{ "F2", "def", func2 },
+							{ "F3", "ghi", func3 },
+							{ "F4", "jkl", func4 },
+							{ "F5", "mno", func5 }
 };
-
-

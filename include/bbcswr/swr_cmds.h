@@ -39,14 +39,13 @@
 #include <bbc/types.h>
 
 struct cmd {
-	char *command;
-	char *description;
+	char command[6];		// Extend to largest command
+	char description[12];	// Extend to largest description string
 	void *func; 
 };
 
 #define cmd_count 5
 
 extern const struct cmd commands[cmd_count];
-
 
 #endif

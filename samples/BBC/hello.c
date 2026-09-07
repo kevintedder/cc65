@@ -43,7 +43,7 @@ void test2() {
 	int i;
 	int xpos, ypos;
 
-	graphics_window( 150, 200, 1100, 600 );
+	graphics_window( 150, 100, 1100, 400 );
 	gcol( 0, COLOUR_BG_BLUE );
 	clg();
 	
@@ -73,10 +73,10 @@ void main(void) {
 
 	page = get_oshwm();
 	himem = get_oshimem();
-	printf("Page : %8x, %8u\r\n", page, page );
-	printf("Himem: %8x, %8u\r\n", himem, himem );
-	printf("RAM  : %8x, %8u\r\n", himem - page, himem - page );
-
+	printf("Page : 0x%4x, %5u\r\n", page, page );
+	printf("Himem: 0x%4x, %5u\r\n", himem, himem );
+	printf("RAM  : 0x%4x, %5u\r\n", himem - page, himem - page );
+	
 
 	proc_begin = get_system_time();
 	test2();	

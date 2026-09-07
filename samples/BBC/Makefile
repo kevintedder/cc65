@@ -91,8 +91,5 @@ $(BINARY):	$(BINARY).o  $(CC65_LIB)\$(TARGET).lib
 
 clean:
 	@$(DELETE) $(BINARY) *.o *.s *.map *.asm
-
-
-cleanlib:
-	@$(DELETE) $(CC65_HOME)\libwrk\$(TARGET)\*
+	@$(DELETE) /Q $(CC65_HOME)\libwrk\$(TARGET)\*
 	@$(DELETE) $(LIBRARY)

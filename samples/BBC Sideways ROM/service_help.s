@@ -34,13 +34,9 @@
 .segment	"CODE"
 
 ;
-; int cmd_idx = 0;
-;
-	jsr     decsp2
-	jsr     push0
-;
 ; claim_absolute_static_workspace();      // I need the AWS so claim it.
 ;
+	jsr     decsp3
 	jsr     _claim_absolute_static_workspace
 ;
 ; help_cmd = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
@@ -51,8 +47,7 @@
 	adc     _Yreg
 	bcc     L000B
 	inx
-L000B:	ldy     #$02
-	jsr     staxysp
+L000B:	jsr     stax0sp
 ;
 ; if ( help_cmd[0] == 0x0d ) {                 // No command supplied
 ;
@@ -73,19 +68,18 @@ L000B:	ldy     #$02
 ;
 ; else {
 ;
-	jmp     incsp4
+	jmp     incsp3
 ;
 ; if ( strcmp_cr( help_cmd, SWR_Title ) == 0 ) {
 ;
-L0002:	ldy     #$05
-	jsr     pushwysp
+L0002:	jsr     pushw0sp
 	lda     #<(_SWR_Title)
 	ldx     #>(_SWR_Title)
 	jsr     _strcmp_cr
 	cpx     #$00
-	jne     L0004
+	bne     L0004
 	cmp     #$00
-	jne     L0004
+	bne     L0004
 ;
 ; swr_print_newline();
 ;
@@ -97,50 +91,32 @@ L0002:	ldy     #$05
 ;
 ; for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 ;
-	ldy     #$00
-	tya
-	sta     (c_sp),y
-	iny
-	sta     (c_sp),y
-L0006:	ldy     #$01
-	lda     (c_sp),y
-	tax
-	dey
-	lda     (c_sp),y
+	lda     #$00
+	ldy     #$02
+L000C:	sta     (c_sp),y
 	cmp     #$05
-	txa
-	sbc     #$00
-	bvc     L000A
-	eor     #$80
-L000A:	asl     a
-	tya
-	bcc     L000D
+	bcs     L000D
 ;
 ; swr_print_space(1);
 ;
-	tax
+	ldx     #$00
 	lda     #$01
 	jsr     _swr_print_space
 ;
 ; swr_print_str( commands[cmd_idx].command );
 ;
-	ldy     #$01
+	ldy     #$02
 	lda     (c_sp),y
-	tax
-	dey
-	lda     (c_sp),y
-	jsr     mulax6
+	jsr     pusha0
+	lda     #$14
+	jsr     tosmula0
 	clc
 	adc     #<(_commands)
-	sta     ptr1
+	tay
 	txa
 	adc     #>(_commands)
-	sta     ptr1+1
-	iny
-	lda     (ptr1),y
 	tax
-	dey
-	lda     (ptr1),y
+	tya
 	jsr     _swr_print_str
 ;
 ; swr_print_space(1);
@@ -151,24 +127,23 @@ L000A:	asl     a
 ;
 ; swr_print_str( commands[cmd_idx].description );
 ;
-	ldy     #$01
+	ldy     #$02
 	lda     (c_sp),y
-	tax
-	dey
-	lda     (c_sp),y
-	jsr     mulax6
+	jsr     pusha0
+	lda     #$14
+	jsr     tosmula0
 	clc
 	adc     #<(_commands)
-	sta     ptr1
+	tay
 	txa
 	adc     #>(_commands)
-	sta     ptr1+1
-	ldy     #$03
-	lda     (ptr1),y
 	tax
-	dey
-	lda     (ptr1),y
-	jsr     _swr_print_str
+	tya
+	clc
+	adc     #$06
+	bcc     L000A
+	inx
+L000A:	jsr     _swr_print_str
 ;
 ; swr_print_newline();
 ;
@@ -176,18 +151,20 @@ L000A:	asl     a
 ;
 ; for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 ;
-	ldx     #$00
+	ldy     #$02
+	clc
 	lda     #$01
-	jsr     addeq0sp
-	jmp     L0006
+	adc     (c_sp),y
+	jmp     L000C
 ;
 ; Areg = 0;                       // Prevent further ROMs from processing this cmd
 ;
-L000D:	sta     _Areg
+L000D:	lda     #$00
+	sta     _Areg
 ;
 ; }
 ;
-L0004:	jmp     incsp4
+L0004:	jmp     incsp3
 
 .endproc
 

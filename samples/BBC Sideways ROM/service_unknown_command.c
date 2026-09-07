@@ -42,9 +42,9 @@
 #include <bbcswr/types.h>
 
 void service_unknown_command() {
-	int idx = 0;
+	int cmd_idx = 0;
     char *cmd_str;
-
+	
     claim_absolute_static_workspace();      	// I need the AWS so claim it.
 
     // --------------------------------//
@@ -59,16 +59,15 @@ void service_unknown_command() {
 
     cmd_str = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
 	
-	for( idx = 0; idx < cmd_count; idx++ ) {
-
-		if (  strcmp_cr( cmd_str, commands[idx].command ) == 0  ) {
+	for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
+				
+		if (  strcmp_cr( cmd_str, commands[cmd_idx].command ) == 0  ) {
 			// Command recognised
 
-			swr_callback( commands[idx].func );	// Call the recognised command
+			swr_callback( commands[cmd_idx].func );	// Call the recognised command
 
 			Areg = 0;                       	// Prevent further ROMs from processing this cmd
 			break;
 		}
 	}
 }
-

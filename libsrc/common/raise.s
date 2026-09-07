@@ -17,7 +17,7 @@ _raise:
         cpx     #0
         bne     invalidsig
         cmp     #SIGCOUNT
-        bcs     invalidsig
+        bcs     invalidsig				; Exit if SIG ID >= 6
 
 ; Save the signal number low byte, then setup the function vector
 

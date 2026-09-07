@@ -1,8 +1,8 @@
 /*****************************************************************************/
 /*                                                                           */
-/*                                sideways_rom.c                             */
+/*                        Event Output Buffer Empty routine                         */
 /*                                                                           */
-/*                Define a BBC sideways ROM framework Header                 */
+/*    This                                                                   */
 /*                                                                           */
 /* (C) 2025  Kevin Tedder                                                    */
 /*                                                                           */
@@ -30,55 +30,3 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
-#include <bbcswr/swr_debug.h>
-#include <bbcswr/types.h>
-#include <bbcswr/swr_cmds.h>
-
-void service_help() {
-	byte cmd_idx;
-    char* help_cmd;
-
-    claim_absolute_static_workspace();      // I need the AWS so claim it.
-
-    // --------------------------------//
-    // PLACE YOUR CODE HERE            //
-    // --------------------------------//
-
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
-#endif
-
-    help_cmd = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
-
-    if ( help_cmd[0] == 0x0d ) {                 // No command supplied
-		swr_print_newline();
-        print_rom_title();
-    }
-    else {
-
-        if ( strcmp_cr( help_cmd, SWR_Title ) == 0 ) {
-			swr_print_newline();
-            print_rom_title();
-
- 			for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
-						
-				swr_print_space(1);
-				swr_print_str( commands[cmd_idx].command );
-				swr_print_space(1);
-				swr_print_str( commands[cmd_idx].description );
-				swr_print_newline();
-			}
-
-            Areg = 0;                       // Prevent further ROMs from processing this cmd
-        }
-
-	}
-}

@@ -37,12 +37,13 @@
 SIG_ERR         = $0000
 
 ; Signal numbers
-SIGABRT         = 0
-SIGFPE          = 1
-SIGILL          = 2
-SIGINT          = 3
-SIGSEGV         = 4
-SIGTERM         = 5
+SIGABRT         = 0				; Abort signal
+SIGFPE          = 1				; Erroneous arithmetic operation
+SIGILL          = 2				; Illegal Instruction
+SIGINT          = 3				; Interrupt from keyboard
+SIGSEGV         = 4				; Invalid memory reference
+SIGTERM         = 5				; Termination signal
+
 SIGCOUNT        = 6             ; Number of signals
 
 ; Table with signal handlers (asm code only)

@@ -5,18 +5,18 @@
 ;
 ; ??? No error cheking yet
 
-        .export         _write
+	.export         _write
 
-    .import     rwcommon
+	.import		rwcommon
 	.import		__fd_getflags, __fd_getchannel
-    .import		pushax, popax, ldaxysp
+	.import		pushax, popax, ldaxysp
 	.import		__seekcheck
 	.import		eio, ebadf, einval, errout2
-	.importzp   sp, ptr1, ptr2, ptr3, tmp2, tmp1
+	.importzp	sp, ptr1, ptr2, ptr3, tmp2, tmp1
 	
-    .include	"bbc/bbc.inc"
+	.include	"bbc/bbc.inc"
 	.include	"bbc/os.inc"
-	.include    "fcntl.inc"
+	.include	"fcntl.inc"
 	.include	"errno.inc"
 	.include	"bbc/fdtable.inc"
 
@@ -30,7 +30,9 @@
 	ldy	#$05		; get fd
 	jsr	ldaxysp		; 
 	ldy	#$02
-	jsr	__seekcheck	; seek if a seek pending
+	
+	; jsr	__seekcheck	; seek if a seek pending
+	
 	cpx	#$FF
 	bne	ok
 	cmp	#$FF

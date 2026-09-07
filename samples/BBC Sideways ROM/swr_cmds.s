@@ -13,69 +13,49 @@
 	.import		_swr_print_str
 	.import		_swr_print_newline
 	.export		_commands
-	.export		_cmd1
-	.export		_desc1
 	.export		_func1
-	.export		_cmd2
-	.export		_desc2
 	.export		_func2
-	.export		_cmd3
-	.export		_desc3
 	.export		_func3
-	.export		_cmd4
-	.export		_desc4
 	.export		_func4
-	.export		_cmd5
-	.export		_desc5
 	.export		_func5
 
 .segment	"RODATA"
 
-_cmd1:
-	.byte	$46,$31,$00
-_desc1:
-	.byte	$61,$62,$63,$00
-_cmd2:
-	.byte	$46,$32,$00
-_desc2:
-	.byte	$64,$65,$66,$00
-_cmd3:
-	.byte	$46,$33,$00
-_desc3:
-	.byte	$67,$68,$69,$00
-_cmd4:
-	.byte	$46,$34,$00
-_desc4:
-	.byte	$67,$68,$69,$00
-_cmd5:
-	.byte	$46,$35,$00
-_desc5:
-	.byte	$67,$68,$69,$00
 _commands:
-	.addr	_cmd1
-	.addr	_desc1
+	.byte	$46,$31,$00
+	.res	3,$00
+	.byte	$61,$62,$63,$00
+	.res	8,$00
 	.addr	_func1
-	.addr	_cmd2
-	.addr	_desc2
+	.byte	$46,$32,$00
+	.res	3,$00
+	.byte	$64,$65,$66,$00
+	.res	8,$00
 	.addr	_func2
-	.addr	_cmd3
-	.addr	_desc3
+	.byte	$46,$33,$00
+	.res	3,$00
+	.byte	$67,$68,$69,$00
+	.res	8,$00
 	.addr	_func3
-	.addr	_cmd4
-	.addr	_desc4
+	.byte	$46,$34,$00
+	.res	3,$00
+	.byte	$6A,$6B,$6C,$00
+	.res	8,$00
 	.addr	_func4
-	.addr	_cmd5
-	.addr	_desc5
+	.byte	$46,$35,$00
+	.res	3,$00
+	.byte	$6D,$6E,$6F,$00
+	.res	8,$00
 	.addr	_func5
-S0015:
+S000D:
 	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$34,$00
-S0012:
-	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$33,$00
-S000F:
-	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$32,$00
 S000C:
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$33,$00
+S000B:
+	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$32,$00
+S000A:
 	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$31,$00
-S0018:
+S000E:
 	.byte	$43,$6D,$64,$3A,$20,$46,$75,$6E,$63,$20,$35,$00
 
 ; ---------------------------------------------------------------
@@ -91,8 +71,8 @@ S0018:
 ;
 ; swr_print_str("Cmd: Func 1");
 ;
-	lda     #<(S000C)
-	ldx     #>(S000C)
+	lda     #<(S000A)
+	ldx     #>(S000A)
 	jsr     _swr_print_str
 ;
 ; swr_print_newline();
@@ -114,8 +94,8 @@ S0018:
 ;
 ; swr_print_str("Cmd: Func 2");
 ;
-	lda     #<(S000F)
-	ldx     #>(S000F)
+	lda     #<(S000B)
+	ldx     #>(S000B)
 	jsr     _swr_print_str
 ;
 ; swr_print_newline();
@@ -137,8 +117,8 @@ S0018:
 ;
 ; swr_print_str("Cmd: Func 3");
 ;
-	lda     #<(S0012)
-	ldx     #>(S0012)
+	lda     #<(S000C)
+	ldx     #>(S000C)
 	jsr     _swr_print_str
 ;
 ; swr_print_newline();
@@ -160,8 +140,8 @@ S0018:
 ;
 ; swr_print_str("Cmd: Func 4");
 ;
-	lda     #<(S0015)
-	ldx     #>(S0015)
+	lda     #<(S000D)
+	ldx     #>(S000D)
 	jsr     _swr_print_str
 ;
 ; swr_print_newline();
@@ -183,8 +163,8 @@ S0018:
 ;
 ; swr_print_str("Cmd: Func 5");
 ;
-	lda     #<(S0018)
-	ldx     #>(S0018)
+	lda     #<(S000E)
+	ldx     #>(S000E)
 	jsr     _swr_print_str
 ;
 ; swr_print_newline();

@@ -30,7 +30,7 @@
 .segment	"CODE"
 
 ;
-; int idx = 0;
+; int cmd_idx = 0;
 ;
 	jsr     push0
 ;
@@ -49,7 +49,7 @@
 	inx
 L0009:	jsr     stax0sp
 ;
-; for( idx = 0; idx < cmd_count; idx++ ) {
+; for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 ;
 	ldy     #$02
 	lda     #$00
@@ -68,47 +68,39 @@ L0002:	ldy     #$03
 	eor     #$80
 L0006:	bpl     L0003
 ;
-; if (  strcmp_cr( cmd_str, commands[idx].command ) == 0  ) {
+; if (  strcmp_cr( cmd_str, commands[cmd_idx].command ) == 0  ) {
 ;
 	jsr     pushw0sp
-	ldy     #$05
-	lda     (c_sp),y
-	tax
-	dey
-	lda     (c_sp),y
-	jsr     mulax6
+	ldy     #$07
+	jsr     pushwysp
+	lda     #$14
+	jsr     tosmula0
 	clc
 	adc     #<(_commands)
-	sta     ptr1
+	tay
 	txa
 	adc     #>(_commands)
-	sta     ptr1+1
-	ldy     #$01
-	lda     (ptr1),y
 	tax
-	dey
-	lda     (ptr1),y
+	tya
 	jsr     _strcmp_cr
 	cpx     #$00
 	bne     L0004
 	cmp     #$00
 	bne     L0004
 ;
-; swr_callback( commands[idx].func ); // Call the recognised command
+; swr_callback( commands[cmd_idx].func ); // Call the recognised command
 ;
-	ldy     #$03
-	lda     (c_sp),y
-	tax
-	dey
-	lda     (c_sp),y
-	jsr     mulax6
+	ldy     #$05
+	jsr     pushwysp
+	lda     #$14
+	jsr     tosmula0
 	clc
 	adc     #<(_commands)
 	sta     ptr1
 	txa
 	adc     #>(_commands)
 	sta     ptr1+1
-	ldy     #$05
+	ldy     #$13
 	lda     (ptr1),y
 	tax
 	dey
@@ -124,7 +116,7 @@ L0006:	bpl     L0003
 ;
 	jmp     incsp4
 ;
-; for( idx = 0; idx < cmd_count; idx++ ) {
+; for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 ;
 L0004:	ldy     #$02
 	ldx     #$00

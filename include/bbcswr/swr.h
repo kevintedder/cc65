@@ -42,11 +42,14 @@
 // claim_absolute_static_workspace() before each service call. It cannot
 // be guarenteed to remain valid between service calls.
 struct aws {
-    byte    tmp1;
-    byte    tmp2;
-    word    tmp3;
-    word    tmp4;
-    byte  padding[240];         // Total = 255 Byte (1 x Page)
+	byte	reserved[128];		// First 128 Bytes reserved for C Stack use during ROM service call.  DO NOT CHANGE
+	
+    byte	tmp1;
+    byte	tmp2;
+    word	tmp3;
+    word	tmp4;
+	
+    byte	padding[128 - 6];	// Total = 255 Byte (1 x Page)	
 };								// Allocated to BSS Segment in page 0x0e00 (see BBCSWR.CFG)
 
 // User defined struct of the Private Work Space. 
@@ -57,7 +60,9 @@ struct pws {
     byte    tmp2;
     word    tmp3;
     word    tmp4;
-    byte  padding[240];         // Total = 255 Byte (1 x Page)
+    byte  padding[251];         
+	
+	// Total = 255 Byte (1 x Page)
 };
 
 
@@ -100,8 +105,11 @@ extern const char SWR_Version[];  // & version number
 void print_rom_title();
 
 extern byte paged_rom_ws[];
-extern void claim_absolute_static_workspace();
-extern void release_absolute_static_workspace();
+
+extern byte _OS_Areg;
+
+extern void claim_static_workspace();
+extern void release_static_workspace();
 extern void claim_vectors();
 
 int __fastcall__ strcmp_cr (const char* s1, const char* s2);

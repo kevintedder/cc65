@@ -41,23 +41,21 @@
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-void service_unknown_command() {
+long service_unknown_command( byte A, byte X, byte Y ) {
 	int cmd_idx = 0;
     char *cmd_str;
 	
-    claim_absolute_static_workspace();      	// I need the AWS so claim it.
-
     // --------------------------------//
-    // PLACE YOUR CODE HERE            //
+    // PLACE YOUR CODE BELOW           //
     // --------------------------------//
 
 #ifdef SWR_DEBUG
     swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
+	dbg_print_byte( A );
     swr_print_newline();
 #endif
 
-    cmd_str = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
+    cmd_str = &cmd_ptr[Y];							// cmd pointers to the start of the command string
 	
 	for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 				
@@ -66,8 +64,27 @@ void service_unknown_command() {
 
 			swr_callback( commands[cmd_idx].func );	// Call the recognised command
 
-			Areg = 0;                       	// Prevent further ROMs from processing this cmd
+			A = 0;                   		    	// Prevent further ROMs from processing this cmd
 			break;
 		}
 	}
+	
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
 }
+
+
+// void test() {
+	// long t;
+	// byte a,x,y;
+
+	// t = service_unknown_command( 1,2,3);
+	
+	// a = t % 256;
+	// x = (t / 256) % 256;
+	// y = (t /65563) % 256;
+	
+// }

@@ -47,6 +47,7 @@
 	.import		_service_unknown_osword
 	.import		_service_help
 	.import		_service_claim_static_ws
+	.import		_service_release_static_ws
 	.import		_service_nmi_release
 	.import		_service_nmi_claim
 	.import		_service_initilise_rom_fs
@@ -79,13 +80,13 @@
 
 	.import		decsp2, decsp4, incsp2, incsp4
 	.import		_itoa, pushax, steax0sp
-	.import		_osbyte
+	; .import		_osbyte
 	
- 	; .export		_exit_bits
 	.export		__STARTUP__ : absolute = 1        ; Mark as startup
 	.export		_SWR_Title, _SWR_Version
 	.export		_paged_rom_ws
-	.export		_claim_absolute_static_workspace, _release_absolute_static_workspace, _claim_vectors
+	; .export		_claim_static_workspace, _release_static_workspace
+	; .export	_claim_vectors
 
 	
 	.importzp	c_sp, sreg, regsave
@@ -240,12 +241,12 @@ _service0:							; Do nothing
 	jmp		_service_routine_post_call
 
 _service1:							; stake a claim for Asbolute WorkSpace
-	jsr		_initialise_stack_pointer
+	; jsr		_initialise_stack_pointer	; C stack not required here
 	jsr		_service_claim_absolute_ws
 	jmp		_service_routine_post_call
 
 _service2:							; Stake a claim for Private Workspace
-	jsr		_initialise_stack_pointer
+	; jsr		_initialise_stack_pointer	; C stack not required here
 	jsr		_service_claim_private_ws
 	jmp		_service_routine_post_call
 
@@ -286,7 +287,7 @@ _service9:
 
 _service10:
 	jsr		_service_routine_pre_call
-	jsr		_service_claim_static_ws
+	jsr		_service_release_static_ws
 	jmp		_service_routine_post_call
 
 _service11:
@@ -451,6 +452,7 @@ _service47:
 
 
 _service48_255:
+	jsr		_restore_regs
 
 ; ------------------------------------------------------------------------
 _service254:
@@ -473,25 +475,52 @@ _service255:
 _service_unknown:					; ROM Service call not identified
 	jmp		_service_routine_post_call
 
-; _exit_bits:
-	; rts
 
 ; ------------------------------------------------------------------------
-_service_routine_pre_call:			;	Setup the CC65 'C' environment
+_service_routine_pre_call:			
+;	This routine go hand-in-hand with '_service_routine_post_call'.
+;	Setup the CC65 'C' environment and prepare the A,X,Y parameter
+;	on the C stack.
 
-;	ldx		_Xreg					; Get ROM No
-;	lda		_paged_rom_ws,x			; Retrieve the PWS page address
-;	and		#$80					; Mask out bits 2^6 ... 2^0
-;	bne		_service_routine_pre_call_2	; Skip if Bit 2^7 = 1 since we already own the AWS
-;										; there no need to set up the pointers again
-
+;	On entry:    	Areg	=	ROM Service Type requested
+;					Xreg 	= 	Current ROM Number
+;					Yreg	= 	Any parameter required for the service
+;					
+	jsr		_service_claim_static_ws
+	
 	jsr		_initialise_aws_pointer
 	jsr		_initialise_pws_pointer
 	jsr		_initialise_stack_pointer
 
-_service_routine_pre_call_2:
-	rts
-	;jmp		_restore_regs
+	; Prepare C stack using save reg values - Areg, Xreg, Yreg
+	; jsr     decsp2
+	; lda     _Areg
+	; tay
+	; sta     (c_sp),y				; Push Areg to C stack
+	; lda     _Xreg
+	; dey
+	; sta     (c_sp),y				; Push Xreg to C stack
+	; lda     _Yreg					; Leave Yreg in A as __fastcall__
+									; Will be pushed to C stack by called function
+	
+	rts								; Return - Next instruction will be JSR to service
+
+; ------------------------------------------------------------------------
+_service_routine_post_call:
+;	Tidy up after calling service routine and restore regs __A__, __X__, __Y__
+;	with the returned value from the called service in EAX (as a long).
+
+;	On Exit:		A	=	Preserved
+;					X	= 	Preserved
+;					Y	= 	Return value from Service call
+	
+	; ldy		sreg					; Set Y - 3rd Byte of EAX 
+	
+	; rts
+
+	jmp		_restore_regs			; Restore current service call registers
+
+	
 
 ; ------------------------------------------------------------------------
 _initialise_aws_pointer:			; Set Pointer to Work Space (AWS/PWS).
@@ -501,7 +530,7 @@ _initialise_aws_pointer:			; Set Pointer to Work Space (AWS/PWS).
  	lda		#$00
  	sta		_aws
 
-; 	rts
+	rts
 
 ; ------------------------------------------------------------------------
 _initialise_pws_pointer:			; Set Pointer to Work Space (AWS/PWS).
@@ -517,68 +546,39 @@ _initialise_pws_pointer:			; Set Pointer to Work Space (AWS/PWS).
 
 ; ------------------------------------------------------------------------
 _initialise_stack_pointer:
-;	Let's be cheeky and use the lower 64 bytes of Page $0100 (CPU Stack) 
-;	for the 'C' Stack starting @ 0x0140.
 ;	### BE CAREFUL ### 
 ;	Avoid too many function call levels. The depth may corrupt the stack
 ;	### BE CAREFUL ### 
 
-; 	Set the 'C' stack pointer to $0140
-	lda		#$40					; Use the lowest 64 byte of the CPU Stack
-	sta		c_sp
-	lda		#$01					; Page 0x01 - CPU Stack
+; 	Set the 'C' stack pointer to $0e7f (First 128 bytes of AWS)
+	lda		_aws+1						; Use the lower 128 byte of the AWS
 	sta		c_sp+1
+	lda		#$7f						; Use the lower 128 byte of the AWS
+	sta		c_sp
 
 	rts
 
 ; ------------------------------------------------------------------------
-_service_routine_post_call:			; Tidy up after calling service routine and 
-									; restore regs __A__, __X__, __Y__	
-
-	jmp		_restore_regs			; Restore current service call registers
-
-; ------------------------------------------------------------------------
-_claim_vectors:						; Claim vectors
-	ldx		#$0f					; Service Request - Claim Vectors
-	ldy		#$00					; Argument is null
-	jmp     _issue_rom_service_call
+; _claim_vectors:						; Claim vectors
+	; ldx		#$0f					; Service Request - Claim Vectors
+	; ldy		#$00					; Argument is null
+	; jmp     _issue_rom_service_call
 
 ; ------------------------------------------------------------------------
-_claim_absolute_static_workspace:	; Claim ownership of Absolute Work Space (AWS)
-									; Set flag to indicate I now own the AWS
-	ldx		_Xreg					; Use ROM No as index
-	lda		_paged_rom_ws,x			; Get Saved ROM workspace ID
-	ora		#$80					; Set AWS Owner flag (Bit 2^7).
-	sta		_paged_rom_ws,x
-
-	ldx		#$0a					; Service Request - Claim Static Workspace
-	ldy		#$00					; Argument is null
-	jmp		_issue_rom_service_call
-
-; ------------------------------------------------------------------------
-_release_absolute_static_workspace:	; Release ownership of Absolute Work Space (AWS)
-									; Clear flag to indicate I now no longer own the AWS
-	ldx		_Xreg					; Use ROM No as index
-	lda		_paged_rom_ws,x			; Get Saved ROM workspace ID
-	and		#$7f					; Clear AWS Owner flag (Bit 2^7).
-	sta		_paged_rom_ws,x
-	rts
-
-; ------------------------------------------------------------------------
-_issue_rom_service_call:
+; _issue_rom_service_call:
 ;									; On Entry:
 ;									;	__X__ = Service Call
 ;									;	__Y__ = Service Argument
 
-	jsr		_push_saved_regs		; push previously saved regs & __SP__ to CPU stack. Make service ROM re-entrant
+	; jsr		_push_saved_regs		; push previously saved regs & __SP__ to CPU stack. Make service ROM re-entrant
 
-	lda		#$8f					; Osbyte ROM service Requests
-;	ldx		#$00					; Service Request   - Preset by calling function
-;	ldy		#$00					; Service Argument  - Preset by calling function
-	jsr     OSBYTE      			; Returned value in X(low) Y(High)
+	; lda		#$8f					; Osbyte ROM service Requests
+;	; ldx		#$00					; Service Request   - Preset by calling function
+;	;ldy		#$00					; Service Argument  - Preset by calling function
+	; jsr     OSBYTE      			; Returned value in X(low) Y(High)
 
-	jsr		_pull_saved_regs		; Restore previous service call register. Service ROM is re-entrant
-	rts
+	; jsr		_pull_saved_regs		; Restore previous service call register. Service ROM is re-entrant
+	; rts
 
 ; ------------------------------------------------------------------------
 _save_regs:							; Save CPU registers to Page zero

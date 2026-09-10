@@ -10,17 +10,14 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.importzp	_Areg
-	.importzp	_Yreg
 	.importzp	_cmd_ptr
-	.import		_claim_absolute_static_workspace
 	.import		_strcmp_cr
 	.import		_commands
 	.import		_swr_callback
 	.export		_service_unknown_command
 
 ; ---------------------------------------------------------------
-; void __near__ service_unknown_command (void)
+; long __near__ service_unknown_command (unsigned char A, unsigned char X, unsigned char Y)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -30,21 +27,22 @@
 .segment	"CODE"
 
 ;
+; long service_unknown_command( byte A, byte X, byte Y ) {
+;
+	jsr     pusha
+;
 ; int cmd_idx = 0;
 ;
 	jsr     push0
 ;
-; claim_absolute_static_workspace();       // I need the AWS so claim it.
+; cmd_str = &cmd_ptr[Y];       // cmd pointers to the start of the command string
 ;
 	jsr     decsp2
-	jsr     _claim_absolute_static_workspace
-;
-; cmd_str = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
-;
-	lda     _cmd_ptr
-	ldx     _cmd_ptr+1
+	ldy     #$04
+	lda     (c_sp),y
 	clc
-	adc     _Yreg
+	adc     _cmd_ptr
+	ldx     _cmd_ptr+1
 	bcc     L0009
 	inx
 L0009:	jsr     stax0sp
@@ -107,14 +105,15 @@ L0006:	bpl     L0003
 	lda     (ptr1),y
 	jsr     _swr_callback
 ;
-; Areg = 0;                        // Prevent further ROMs from processing this cmd
+; A = 0;                          // Prevent further ROMs from processing this cmd
 ;
 	lda     #$00
-	sta     _Areg
+	ldy     #$06
+	sta     (c_sp),y
 ;
 ; break;
 ;
-	jmp     incsp4
+	jmp     L0003
 ;
 ; for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 ;
@@ -124,9 +123,30 @@ L0004:	ldy     #$02
 	jsr     addeqysp
 	jmp     L0002
 ;
+; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A; // Return the values of A, X, Y
+;
+L0003:	ldy     #$04
+	ldx     #$00
+	lda     (c_sp),y
+	stx     sreg+1
+	sta     sreg
+	txa
+	jsr     pusheax
+	ldy     #$09
+	lda     (c_sp),y
+	tax
+	lda     #$00
+	jsr     axlong
+	jsr     tosaddeax
+	jsr     pusheax
+	ldy     #$0A
+	ldx     #$00
+	lda     (c_sp),y
+	jsr     tosadd0ax
+;
 ; }
 ;
-L0003:	jmp     incsp4
+	jmp     incsp7
 
 .endproc
 

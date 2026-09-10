@@ -22,7 +22,7 @@ preserveloop:							; copy zpspace to C stack
 	
 	rts
 
-;	Pull 26 zero page bytes from C stack
+;	Pull 26 bytes from C stack to Zero Page
 
 restorezp:
 	ldy	#zpspace-1

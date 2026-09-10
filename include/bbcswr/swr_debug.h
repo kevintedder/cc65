@@ -40,7 +40,7 @@
 
 #include <bbc/types.h>
 
-#define SERVICE_NAME "SC:"
+#define SERVICE_NAME " SC:"
 
 //  ################################################################################
 //  ### THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out ###

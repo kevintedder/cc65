@@ -51,9 +51,8 @@
 
 
 void service_claim_absolute_ws() {
-    byte ws;
 
-    // swr_print_str( "claim_absolute_ws " );
+    // swr_print_str( " claim_absolute_ws " );
     // swr_print_newline();
     // dbg_print_cpu_registers();
     // dbg_print_workspace();
@@ -65,11 +64,27 @@ void service_claim_absolute_ws() {
 #endif
 
 #ifdef configure_aws
-    ws = 0x0e + ( sizeof(struct aws) / 256 );   // Start with OSHWM + size of AWS in 256 byte pages + 1
-    if ( ws > Yreg ) {
+
+//	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
+//					the C stack whilst the ROM initialises AWS
+
+// 	Start with OSHWM + size of AWS in 256 byte pages + 1
+    aws = (struct aws *)( 0x0e + ( sizeof(struct aws) / 256 ) );
+	
+    if ( (byte)aws > Yreg ) {
+		Yreg = (byte)aws;
         aws = (struct aws *)0x0e00;
-		Yreg = ws;
+#ifdef SWR_DEBUG
+	swr_print_str( "A:");
+	dbg_print_byte( Areg );
+	swr_print_str( " X:");
+	dbg_print_byte( Xreg );
+	swr_print_str( " Y:");
+	dbg_print_byte( Yreg );
+    swr_print_newline();
+#endif
     }
+
 #endif
 
     // dbg_print_cpu_registers();

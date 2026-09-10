@@ -25,33 +25,34 @@
 .segment	"CODE"
 
 ;
-; ws = 0x0e + ( sizeof(struct aws) / 256 );   // Start with OSHWM + size of AWS in 256 byte pages + 1
+; aws = (struct aws *)( 0x0e + ( sizeof(struct aws) / 256 ) );
 ;
-	jsr     decsp1
-	lda     #$0E
-	ldy     #$00
-	sta     (c_sp),y
+	ldx     #$00
+	lda     #$0F
+	sta     _aws
+	stx     _aws+1
 ;
-; if ( ws > Yreg ) {
+; if ( (byte)aws > Yreg ) {
 ;
+	lda     _aws
 	cmp     _Yreg
 	bcc     L0002
 	beq     L0002
 ;
+; Yreg = (byte)aws;
+;
+	sta     _Yreg
+;
 ; aws = (struct aws *)0x0e00;
 ;
-	tax
-	sty     _aws
+	ldx     #$0E
+	lda     #$00
+	sta     _aws
 	stx     _aws+1
-;
-; Yreg = ws;
-;
-	lda     (c_sp),y
-	sta     _Yreg
 ;
 ; }
 ;
-L0002:	jmp     incsp1
+L0002:	rts
 
 .endproc
 

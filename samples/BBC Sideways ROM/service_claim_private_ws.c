@@ -43,7 +43,6 @@
 
 
 void service_claim_private_ws() {
-	byte ws;
 
     // swr_print_str( "claim_private_ws" );
     // swr_print_newline();
@@ -57,11 +56,27 @@ void service_claim_private_ws() {
 #endif
 
 #ifdef configure_pws
-    ws = Yreg + ( sizeof(struct pws) / 256 ) + 1;	// Struct pws declared in /include/bbcswr/swr.h
-    paged_rom_ws[Xreg] = ws;						// Save PWS pointer into Paged ROM Workspace Storage @ 0x0df0
-    pws = (struct pws *)(ws * 256);					// Define how many pages required for private workspace
-	Yreg = ws;
+
+//	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
+//					the C stack whilst the ROM initialises PWS
+
+    pws = (struct pws *)(Yreg + ( sizeof(struct pws) / 256 ) );	// Struct pws declared in /include/bbcswr/swr.h
+    paged_rom_ws[Xreg] = (byte)(pws);						// Save PWS pointer into Paged ROM Workspace Storage @ 0x0df0
+	Yreg = (byte)pws;
+    pws = (struct pws *)((byte)(pws) * 256);					// Define how many pages required for private workspace
+
 #endif
+
+#ifdef SWR_DEBUG
+	swr_print_str( "A:");
+	dbg_print_byte( Areg );
+	swr_print_str( " X:");
+	dbg_print_byte( Xreg );
+	swr_print_str( " Y:");
+	dbg_print_byte( Yreg );
+    swr_print_newline();
+#endif
+
 
     // dbg_print_cpu_registers();
     // dbg_print_workspace();

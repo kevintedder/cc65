@@ -134,5 +134,5 @@ clean:
 
 
 cleanlib:
-	@$(DELETE) $(CC65_HOME)\libwrk\$(TARGET)\*
-	@$(DELETE) $(LIBRARY)
+	@$(DELETE) /Q $(CC65_HOME)\libwrk\$(TARGET)\*
+	@$(DELETE) /Q $(LIBRARY)

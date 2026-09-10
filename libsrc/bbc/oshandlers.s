@@ -227,7 +227,7 @@ _eventhandler:
 	tya
 	pha
 
-	; jsr		preservezp				; preserve page zero (26 bytes) to C Stack
+	jsr		preservezp				; preserve page zero (26 bytes) to C Stack
 
 	asl		a						; Use the Event number as an index into the event table
 	tax
@@ -242,7 +242,7 @@ _eventhandler:
 _eh01:
 	jsr		_eh01					; Call Event routine (altered from above)
 
-	; jsr		restorezp				; restore page zero (26 bytes) from C stack
+	jsr		restorezp				; restore page zero (26 bytes) from C stack
 
 	pla								; Restore all registers from CPU stack
 	tay

@@ -166,12 +166,13 @@ L0006:	jsr     _print_osbyte
 ; aws->tmp1 = 30;
 ;
 	lda     #$1E
-L000A:	ldy     #$00
+L000A:	ldy     #$80
 	sta     (_aws),y
 ;
 ; Areg = 0;                       // Prevent further ROMs from processing this cmd
 ;
-	sty     _Areg
+	lda     #$00
+	sta     _Areg
 ;
 ; }
 ;

@@ -13,18 +13,15 @@
 	.import		_swr_print_str
 	.import		_swr_print_newline
 	.import		_swr_print_space
-	.importzp	_Areg
-	.importzp	_Yreg
 	.importzp	_cmd_ptr
 	.import		_SWR_Title
 	.import		_print_rom_title
-	.import		_claim_absolute_static_workspace
 	.import		_strcmp_cr
 	.import		_commands
 	.export		_service_help
 
 ; ---------------------------------------------------------------
-; void __near__ service_help (void)
+; long __near__ service_help (unsigned char A, unsigned char X, unsigned char Y)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -34,22 +31,23 @@
 .segment	"CODE"
 
 ;
-; claim_absolute_static_workspace();      // I need the AWS so claim it.
+; long service_help( byte A, byte X, byte Y ) {
+;
+	jsr     pusha
+;
+; help_cmd = &cmd_ptr[Y];       // cmd pointers to the start of the command string
 ;
 	jsr     decsp3
-	jsr     _claim_absolute_static_workspace
-;
-; help_cmd = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
-;
-	lda     _cmd_ptr
-	ldx     _cmd_ptr+1
+	ldy     #$03
+	lda     (c_sp),y
 	clc
-	adc     _Yreg
+	adc     _cmd_ptr
+	ldx     _cmd_ptr+1
 	bcc     L000B
 	inx
 L000B:	jsr     stax0sp
 ;
-; if ( help_cmd[0] == 0x0d ) {                 // No command supplied
+; if ( help_cmd[0] == 0x0d ) {     // No command supplied
 ;
 	sta     ptr1
 	stx     ptr1+1
@@ -68,7 +66,7 @@ L000B:	jsr     stax0sp
 ;
 ; else {
 ;
-	jmp     incsp3
+	jmp     L0004
 ;
 ; if ( strcmp_cr( help_cmd, SWR_Title ) == 0 ) {
 ;
@@ -157,14 +155,36 @@ L000A:	jsr     _swr_print_str
 	adc     (c_sp),y
 	jmp     L000C
 ;
-; Areg = 0;                       // Prevent further ROMs from processing this cmd
+; A = 0;         // Prevent further ROMs from processing this cmd
 ;
 L000D:	lda     #$00
-	sta     _Areg
+	ldy     #$05
+	sta     (c_sp),y
+;
+; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A; // Return the values of A, X, Y
+;
+L0004:	ldy     #$03
+	ldx     #$00
+	lda     (c_sp),y
+	stx     sreg+1
+	sta     sreg
+	txa
+	jsr     pusheax
+	ldy     #$08
+	lda     (c_sp),y
+	tax
+	lda     #$00
+	jsr     axlong
+	jsr     tosaddeax
+	jsr     pusheax
+	ldy     #$09
+	ldx     #$00
+	lda     (c_sp),y
+	jsr     tosadd0ax
 ;
 ; }
 ;
-L0004:	jmp     incsp3
+	jmp     incsp6
 
 .endproc
 

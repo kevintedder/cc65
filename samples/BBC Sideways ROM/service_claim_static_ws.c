@@ -34,19 +34,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <bbc/osbyte.h>
 #include <bbcswr/swr_print_lite.h>
 #include <bbcswr/swr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
+
 void service_claim_static_ws() {
-    // print_cpu_registers();
+	
+//	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
+//					the C stack whilst the ROM initialises PWS
 
-    release_absolute_static_workspace();    // clear AWS Owner flag. I no longer own the AWS
+	if ( ( paged_rom_ws[Xreg] & 0x80 ) != 0x0 ) {	// Is this ROM the AWS Owner
 
-    // --------------------------------//
-    // PLACE YOUR CODE HERE            //
-    // --------------------------------//
+		// AWS Owner?  No
+
+		//  Use OS_Areg as a temporary store for Paged ROM setting
+		OS_Areg = paged_rom_ws[Xreg] | 0x80;	// Set Bit 7 = Claim AWS Owner
+		paged_rom_ws[Xreg] = OS_Areg;
+
+		asm("lda	#143");
+		asm("ldx	#10");
+		asm("ldy	#0");
+		asm("jsr 	$fffe");
+		
+		paged_rom_ws[Xreg] = OS_Areg;
+	}
+
+	// AWS Owner?  Yes
+
 
 #ifdef SWR_DEBUG
     swr_print_str( SERVICE_NAME );
@@ -54,5 +71,11 @@ void service_claim_static_ws() {
     swr_print_newline();
 #endif
 
+
 }
 
+void service_release_static_ws() {
+	OS_Areg = paged_rom_ws[Xreg] & 0x7f;	// Set Bit 7 = Claim AWS Owner
+	paged_rom_ws[Xreg] = OS_Areg;
+
+}

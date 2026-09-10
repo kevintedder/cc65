@@ -10,8 +10,11 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.import		_release_absolute_static_workspace
+	.importzp	_Xreg
+	.importzp	_OS_Areg
+	.import		_paged_rom_ws
 	.export		_service_claim_static_ws
+	.export		_service_release_static_ws
 
 ; ---------------------------------------------------------------
 ; void __near__ service_claim_static_ws (void)
@@ -24,9 +27,81 @@
 .segment	"CODE"
 
 ;
-; release_absolute_static_workspace();    // clear AWS Owner flag. I no longer own the AWS
+; if ( ( paged_rom_ws[Xreg] & 0x80 ) != 0x0 ) { // Is this ROM the AWS Owner
 ;
-	jmp     _release_absolute_static_workspace
+	ldy     _Xreg
+	lda     _paged_rom_ws,y
+	and     #$80
+	beq     L0002
+;
+; OS_Areg = paged_rom_ws[Xreg] | 0x80; // Set Bit 7 = Claim AWS Owner
+;
+	ldy     _Xreg
+	lda     _paged_rom_ws,y
+	ora     #$80
+	sta     _OS_Areg
+;
+; paged_rom_ws[Xreg] = OS_Areg;
+;
+	ldy     _Xreg
+	lda     _OS_Areg
+	sta     _paged_rom_ws,y
+;
+; asm("lda #143");
+;
+	lda     #143
+;
+; asm("ldx #10");
+;
+	ldx     #10
+;
+; asm("ldy #0");
+;
+	ldy     #0
+;
+; asm("jsr  $fffe");
+;
+	jsr     $fffe
+;
+; paged_rom_ws[Xreg] = OS_Areg;
+;
+	ldy     _Xreg
+	lda     _OS_Areg
+	sta     _paged_rom_ws,y
+;
+; }
+;
+L0002:	rts
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ service_release_static_ws (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_service_release_static_ws: near
+
+.segment	"CODE"
+
+;
+; OS_Areg = paged_rom_ws[Xreg] & 0x7f; // Set Bit 7 = Claim AWS Owner
+;
+	ldy     _Xreg
+	lda     _paged_rom_ws,y
+	and     #$7F
+	sta     _OS_Areg
+;
+; paged_rom_ws[Xreg] = OS_Areg;
+;
+	ldy     _Xreg
+	lda     _OS_Areg
+	sta     _paged_rom_ws,y
+;
+; }
+;
+	rts
 
 .endproc
 

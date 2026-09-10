@@ -40,14 +40,13 @@
 #include <bbcswr/types.h>
 #include <bbcswr/swr_cmds.h>
 
-void service_help() {
+
+long service_help( byte A, byte X, byte Y ) {
 	byte cmd_idx;
     char* help_cmd;
 
-    claim_absolute_static_workspace();      // I need the AWS so claim it.
-
     // --------------------------------//
-    // PLACE YOUR CODE HERE            //
+    // PLACE YOUR CODE BELOW           //
     // --------------------------------//
 
 #ifdef SWR_DEBUG
@@ -56,9 +55,10 @@ void service_help() {
     swr_print_newline();
 #endif
 
-    help_cmd = &cmd_ptr[Yreg];                   // cmd pointers to the start of the command string
+    help_cmd = &cmd_ptr[Y];							// cmd pointers to the start of the command string
+    // help_cmd = &cmd_ptr[Yreg];					// cmd pointers to the start of the command string
 
-    if ( help_cmd[0] == 0x0d ) {                 // No command supplied
+    if ( help_cmd[0] == 0x0d ) {					// No command supplied
 		swr_print_newline();
         print_rom_title();
     }
@@ -77,8 +77,28 @@ void service_help() {
 				swr_print_newline();
 			}
 
-            Areg = 0;                       // Prevent further ROMs from processing this cmd
+            A = 0;									// Prevent further ROMs from processing this cmd
         }
 
 	}
+
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
+
 }
+
+// void test_help() {
+	// long t;
+	// byte a;
+	// byte x,y;
+
+	// t = service_help( 15,32,64);
+	
+	// a = t % 256;
+	// x = (t / 256) % 256;
+	// y = (t /65563) % 256;
+	
+// }

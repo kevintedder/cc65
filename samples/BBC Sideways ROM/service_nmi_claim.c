@@ -40,18 +40,13 @@
 #include <bbcswr/types.h>
 
 void service_nmi_claim() {
-    // swr_print_str( "nmi_claim " );
-    // print_newline();
-    // print_cpu_registers();
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
 #ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
+	dbg_print_rom();
 #endif
 
 }

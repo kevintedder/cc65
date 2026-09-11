@@ -63,7 +63,6 @@ invalidsig:
         lda     #<EINVAL
         jsr     ___seterrno     ; Returns 0 in A
         tax                     ; A/X = 0
-		
 ___sig_dfl:
         rts
 

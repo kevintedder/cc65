@@ -40,23 +40,28 @@
 #include <bbcswr/types.h>
 #include <bbcswr/swr_cmds.h>
 
+struct _eax {
+    byte    a;
+    byte    x;
+    byte    y;
+    byte	padding;
+} eax;
 
-long service_help( byte A, byte X, byte Y ) {
+
+struct _eax service_help( byte A, byte X, byte Y ) {
 	byte cmd_idx;
     char* help_cmd;
+
+
+#ifdef SWR_DEBUG
+	dbg_print_rom();
+#endif
 
     // --------------------------------//
     // PLACE YOUR CODE BELOW           //
     // --------------------------------//
 
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
-#endif
-
     help_cmd = &cmd_ptr[Y];							// cmd pointers to the start of the command string
-    // help_cmd = &cmd_ptr[Yreg];					// cmd pointers to the start of the command string
 
     if ( help_cmd[0] == 0x0d ) {					// No command supplied
 		swr_print_newline();
@@ -86,19 +91,23 @@ long service_help( byte A, byte X, byte Y ) {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
+#ifdef SWR_DEBUG
+	dbg_print_rom();
+#endif
 
+	// t = (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
+
+
+	eax.a = A;
+	eax.x = X;
+	eax.y = Y;
+	return eax;
 }
 
-// void test_help() {
-	// long t;
-	// byte a;
-	// byte x,y;
+void test(){
+	struct _eax t;
+	
+	t = service_help(1,2,3);
+	
+}
 
-	// t = service_help( 15,32,64);
-	
-	// a = t % 256;
-	// x = (t / 256) % 256;
-	// y = (t /65563) % 256;
-	
-// }

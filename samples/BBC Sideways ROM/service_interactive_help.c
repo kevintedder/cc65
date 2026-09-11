@@ -39,17 +39,23 @@
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-void service_interactive_help() {                  // Do nothing, but allows you to do something
+long service_interactive_help( byte A, byte X, byte Y ) {                  // Do nothing, but allows you to do something
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+
+
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
 #ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
+	dbg_print_rom();
 #endif
 
+	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }
 

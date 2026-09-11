@@ -40,20 +40,25 @@
 #include <bbcswr/types.h>
 
 
-void service_auto_boot( ) {
+long service_auto_boot( byte A, byte X, byte Y ) {
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
-#endif
-
 	print_rom_title();
     swr_print_newline();
 
+
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
+#ifdef SWR_DEBUG
+	dbg_print_rom();
+#endif
+
+	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }
 

@@ -17,11 +17,19 @@
 	.import		_SWR_Title
 	.import		_print_rom_title
 	.import		_strcmp_cr
+	.import		_dbg_print_rom
 	.import		_commands
+	.export		_eax
 	.export		_service_help
+	.export		_test
+
+.segment	"BSS"
+
+_eax:
+	.res	4,$00
 
 ; ---------------------------------------------------------------
-; long __near__ service_help (unsigned char A, unsigned char X, unsigned char Y)
+; struct _eax __near__ service_help (unsigned char A, unsigned char X, unsigned char Y)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -31,13 +39,17 @@
 .segment	"CODE"
 
 ;
-; long service_help( byte A, byte X, byte Y ) {
+; struct _eax service_help( byte A, byte X, byte Y ) {
 ;
 	jsr     pusha
 ;
-; help_cmd = &cmd_ptr[Y];       // cmd pointers to the start of the command string
+; dbg_print_rom();
 ;
 	jsr     decsp3
+	jsr     _dbg_print_rom
+;
+; help_cmd = &cmd_ptr[Y];       // cmd pointers to the start of the command string
+;
 	ldy     #$03
 	lda     (c_sp),y
 	clc
@@ -92,12 +104,13 @@ L0002:	jsr     pushw0sp
 	lda     #$00
 	ldy     #$02
 L000C:	sta     (c_sp),y
+	ldx     #$00
+	lda     (c_sp),y
 	cmp     #$05
 	bcs     L000D
 ;
 ; swr_print_space(1);
 ;
-	ldx     #$00
 	lda     #$01
 	jsr     _swr_print_space
 ;
@@ -157,34 +170,74 @@ L000A:	jsr     _swr_print_str
 ;
 ; A = 0;         // Prevent further ROMs from processing this cmd
 ;
-L000D:	lda     #$00
+L000D:	txa
 	ldy     #$05
 	sta     (c_sp),y
 ;
-; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A; // Return the values of A, X, Y
+; dbg_print_rom();
 ;
-L0004:	ldy     #$03
-	ldx     #$00
+L0004:	jsr     _dbg_print_rom
+;
+; eax.a = A;
+;
+	ldy     #$05
 	lda     (c_sp),y
-	stx     sreg+1
+	sta     _eax
+;
+; eax.x = X;
+;
+	dey
+	lda     (c_sp),y
+	sta     _eax+1
+;
+; eax.y = Y;
+;
+	dey
+	lda     (c_sp),y
+	sta     _eax+2
+;
+; return eax;
+;
+	lda     _eax+3
+	sta     sreg+1
+	lda     _eax+2
 	sta     sreg
-	txa
-	jsr     pusheax
-	ldy     #$08
-	lda     (c_sp),y
-	tax
-	lda     #$00
-	jsr     axlong
-	jsr     tosaddeax
-	jsr     pusheax
-	ldy     #$09
-	ldx     #$00
-	lda     (c_sp),y
-	jsr     tosadd0ax
+	ldx     _eax+1
+	lda     _eax
 ;
 ; }
 ;
 	jmp     incsp6
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ test (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_test: near
+
+.segment	"CODE"
+
+;
+; t = service_help(1,2,3);
+;
+	jsr     decsp6
+	lda     #$01
+	tay
+	sta     (c_sp),y
+	lda     #$02
+	dey
+	sta     (c_sp),y
+	lda     #$03
+	jsr     _service_help
+	jsr     steax0sp
+;
+; }
+;
+	jmp     incsp4
 
 .endproc
 

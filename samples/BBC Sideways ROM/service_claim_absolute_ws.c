@@ -52,17 +52,6 @@
 
 void service_claim_absolute_ws() {
 
-    // swr_print_str( " claim_absolute_ws " );
-    // swr_print_newline();
-    // dbg_print_cpu_registers();
-    // dbg_print_workspace();
-
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
-#endif
-
 #ifdef configure_aws
 
 //	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
@@ -74,19 +63,13 @@ void service_claim_absolute_ws() {
     if ( (byte)aws > Yreg ) {
 		Yreg = (byte)aws;
         aws = (struct aws *)0x0e00;
+
 #ifdef SWR_DEBUG
-	swr_print_str( "A:");
-	dbg_print_byte( Areg );
-	swr_print_str( " X:");
-	dbg_print_byte( Xreg );
-	swr_print_str( " Y:");
-	dbg_print_byte( Yreg );
-    swr_print_newline();
+	dbg_print_rom();
 #endif
+
     }
 
 #endif
 
-    // dbg_print_cpu_registers();
-    // dbg_print_workspace();
 }

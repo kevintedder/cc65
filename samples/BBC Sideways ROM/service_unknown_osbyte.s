@@ -18,6 +18,7 @@
 	.importzp	_OS_Areg
 	.importzp	_OS_Xreg
 	.importzp	_OS_Yreg
+	.import		_dbg_print_rom
 	.export		_print_osbyte
 	.export		_service_unknown_osbyte
 
@@ -111,7 +112,7 @@ L0004:	jsr     _intdec
 .endproc
 
 ; ---------------------------------------------------------------
-; void __near__ service_unknown_osbyte (void)
+; long __near__ service_unknown_osbyte (unsigned char A, unsigned char X, unsigned char Y)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -121,8 +122,13 @@ L0004:	jsr     _intdec
 .segment	"CODE"
 
 ;
+; long service_unknown_osbyte( byte A, byte X, byte Y ) {
+;
+	jsr     pusha
+;
 ; switch ( OS_Areg ) {
 ;
+	ldx     #$00
 	lda     _OS_Areg
 ;
 ; }
@@ -133,7 +139,7 @@ L0004:	jsr     _intdec
 	beq     L0005
 	cmp     #$1C
 	beq     L0006
-	rts
+	jmp     L0003
 ;
 ; print_osbyte();
 ;
@@ -145,7 +151,7 @@ L0004:	jsr     _print_osbyte
 ;
 ; break;
 ;
-	jmp     L000A
+	jmp     L000B
 ;
 ; print_osbyte();
 ;
@@ -157,7 +163,7 @@ L0005:	jsr     _print_osbyte
 ;
 ; break;
 ;
-	jmp     L000A
+	jmp     L000B
 ;
 ; print_osbyte();
 ;
@@ -166,17 +172,42 @@ L0006:	jsr     _print_osbyte
 ; aws->tmp1 = 30;
 ;
 	lda     #$1E
-L000A:	ldy     #$80
+L000B:	ldy     #$80
 	sta     (_aws),y
 ;
 ; Areg = 0;                       // Prevent further ROMs from processing this cmd
 ;
-	lda     #$00
+	ldx     #$00
+	txa
 	sta     _Areg
+;
+; dbg_print_rom();
+;
+L0003:	jsr     _dbg_print_rom
+;
+; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+;
+	ldx     #$00
+	lda     (c_sp,x)
+	stx     sreg+1
+	sta     sreg
+	txa
+	jsr     pusheax
+	ldy     #$05
+	lda     (c_sp),y
+	tax
+	lda     #$00
+	jsr     axlong
+	jsr     tosaddeax
+	jsr     pusheax
+	ldy     #$06
+	ldx     #$00
+	lda     (c_sp),y
+	jsr     tosadd0ax
 ;
 ; }
 ;
-	rts
+	jmp     incsp3
 
 .endproc
 

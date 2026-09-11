@@ -51,7 +51,7 @@ void print_osbyte() {
 	swr_print_newline();
 }
 
-void service_unknown_osbyte() {
+long service_unknown_osbyte( byte A, byte X, byte Y ) {
 
     // swr_print_str( "unknown_osbyte " );
     // swr_print_newline();
@@ -62,12 +62,6 @@ void service_unknown_osbyte() {
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
-    swr_print_newline();
-#endif
 
 	switch ( OS_Areg ) {
 		
@@ -91,5 +85,16 @@ void service_unknown_osbyte() {
 			
 	}
 
+
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
+#ifdef SWR_DEBUG
+	dbg_print_rom();
+#endif
+
+	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }
 

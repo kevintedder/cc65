@@ -12,10 +12,11 @@
 	.macpack	longbranch
 	.import		_swr_print_newline
 	.import		_print_rom_title
+	.import		_dbg_print_rom
 	.export		_service_auto_boot
 
 ; ---------------------------------------------------------------
-; void __near__ service_auto_boot (void)
+; long __near__ service_auto_boot (unsigned char A, unsigned char X, unsigned char Y)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -25,13 +26,45 @@
 .segment	"CODE"
 
 ;
+; long service_auto_boot( byte A, byte X, byte Y ) {
+;
+	jsr     pusha
+;
 ; print_rom_title();
 ;
 	jsr     _print_rom_title
 ;
 ; swr_print_newline();
 ;
-	jmp     _swr_print_newline
+	jsr     _swr_print_newline
+;
+; dbg_print_rom();
+;
+	jsr     _dbg_print_rom
+;
+; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+;
+	ldx     #$00
+	lda     (c_sp,x)
+	stx     sreg+1
+	sta     sreg
+	txa
+	jsr     pusheax
+	ldy     #$05
+	lda     (c_sp),y
+	tax
+	lda     #$00
+	jsr     axlong
+	jsr     tosaddeax
+	jsr     pusheax
+	ldy     #$06
+	ldx     #$00
+	lda     (c_sp),y
+	jsr     tosadd0ax
+;
+; }
+;
+	jmp     incsp3
 
 .endproc
 

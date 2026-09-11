@@ -77,7 +77,10 @@
 	.import		_service_swram_size
 	.import		_service_joystick
 
-
+	.import		_dbg_print_reg
+	.import		pusha
+	.import		OSWRCH, OSNEWL
+	
 	.import		decsp2, decsp4, incsp2, incsp4
 	.import		_itoa, pushax, steax0sp
 	; .import		_osbyte
@@ -243,12 +246,14 @@ _service0:							; Do nothing
 _service1:							; stake a claim for Asbolute WorkSpace
 	; jsr		_initialise_stack_pointer	; C stack not required here
 	jsr		_service_claim_absolute_ws
-	jmp		_service_routine_post_call
+	jmp		_restore_regs			; Restore current service call registers
+	; jmp		_service_routine_post_call
 
 _service2:							; Stake a claim for Private Workspace
 	; jsr		_initialise_stack_pointer	; C stack not required here
 	jsr		_service_claim_private_ws
-	jmp		_service_routine_post_call
+	jmp		_restore_regs			; Restore current service call registers
+	; jmp		_service_routine_post_call
 
 _service3:							; Auto_Boot initialise
 	jsr		_service_routine_pre_call
@@ -487,20 +492,19 @@ _service_routine_pre_call:
 ;					Yreg	= 	Any parameter required for the service
 ;					
 	jsr		_service_claim_static_ws
-	
 	jsr		_initialise_aws_pointer
 	jsr		_initialise_pws_pointer
 	jsr		_initialise_stack_pointer
 
 	; Prepare C stack using save reg values - Areg, Xreg, Yreg
-	; jsr     decsp2
-	; lda     _Areg
-	; tay
-	; sta     (c_sp),y				; Push Areg to C stack
-	; lda     _Xreg
-	; dey
-	; sta     (c_sp),y				; Push Xreg to C stack
-	; lda     _Yreg					; Leave Yreg in A as __fastcall__
+	jsr     decsp2
+	lda     _Areg
+	tay
+	sta     (c_sp),y				; Push Areg to C stack
+	lda     _Xreg
+	dey
+	sta     (c_sp),y				; Push Xreg to C stack
+	lda     _Yreg					; Leave Yreg in A as __fastcall__
 									; Will be pushed to C stack by called function
 	
 	rts								; Return - Next instruction will be JSR to service
@@ -510,16 +514,58 @@ _service_routine_post_call:
 ;	Tidy up after calling service routine and restore regs __A__, __X__, __Y__
 ;	with the returned value from the called service in EAX (as a long).
 
-;	On Exit:		A	=	Preserved
-;					X	= 	Preserved
-;					Y	= 	Return value from Service call
-	
-	; ldy		sreg					; Set Y - 3rd Byte of EAX 
-	
-	; rts
+;						   |Sreg+1| Sreg | Xreg | Areg |
+;	On Entry:		EAX	=  |0x00  | __Y__| __X__| __A__|
 
-	jmp		_restore_regs			; Restore current service call registers
+	jsr		_save_regs
 
+	lda		_Areg
+	jsr		_print_byte					; Print A
+	lda		_Xreg
+	jsr		_print_byte					; Print X
+	lda		_Yreg
+	jsr		_print_byte					; Print Y
+	jsr		OSNEWL
+	
+	jsr		_restore_regs
+
+	ldy		sreg					; Set Y - 3rd Byte of EAX 
+
+	rts
+
+
+_nibble:
+.byte		"0123456789ABCDEF", $00
+
+_print_nibble:
+	lda		_nibble,x
+	jsr		OSWRCH
+	rts
+
+_print_byte:
+	pha
+
+	lda		#'0'
+	jsr		OSWRCH
+	lda		#'x'
+	jsr		OSWRCH
+
+	pla
+	pha
+	lsr		a
+	lsr		a
+	lsr		a
+	lsr		a
+	tax
+	jsr		_print_nibble
+
+	pla
+	and		#$0f
+	tax
+	jsr		_print_nibble
+	
+	lda		#' '
+	jsr		OSWRCH
 	
 
 ; ------------------------------------------------------------------------
@@ -595,59 +641,59 @@ _restore_regs:						; Restore CPU Registers from Page Zero
 	rts
 
 ; ------------------------------------------------------------------------
-_push_saved_regs:
-	sta		tmp4					; Save __A__ reg temporarily
+; _push_saved_regs:
+	; sta		tmp4					; Save __A__ reg temporarily
 
-	pla								; Adjust return address on CPU stack
-	sta		ptr1
-	pla
-	sta		ptr1+1
+	; pla								; Adjust return address on CPU stack
+	; sta		ptr1
+	; pla
+	; sta		ptr1+1
 
-	lda		_Areg
-	pha
-	lda		_Xreg
-	pha
-	lda		_Yreg
-	pha
-	; lda		c_sp						; push C stack pointer to CPU stack
+	; lda		_Areg
 	; pha
-	; lda		c_sp+1
+	; lda		_Xreg
+	; pha
+	; lda		_Yreg
+	; pha
+;	; lda		c_sp						; push C stack pointer to CPU stack
+;	; pha
+;	; lda		c_sp+1
+;	; pha
+
+	; lda		ptr1+1					; push return address back on CPU stack
+	; pha
+	; lda		ptr1
 	; pha
 
-	lda		ptr1+1					; push return address back on CPU stack
-	pha
-	lda		ptr1
-	pha
+	; lda		tmp4					; restore __A__
+	; rts								; Return using the adjusted Stack Address
 
-	lda		tmp4					; restore __A__
-	rts								; Return using the adjusted Stack Address
+;------------------------------------------------------------------------
+; _pull_saved_regs:
+	; sta		tmp4					; Save __A__ reg temporarily
 
-; ------------------------------------------------------------------------
-_pull_saved_regs:
-	sta		tmp4					; Save __A__ reg temporarily
+	; pla								; Adjust return address on CPU stack
+	; sta		ptr1
+	; pla
+	; sta		ptr1+1
 
-	pla								; Adjust return address on CPU stack
-	sta		ptr1
-	pla
-	sta		ptr1+1
+;	; pla
+;	; sta		c_sp+1					; Restore original C stack Pointer
+;	; pla
+;	; sta		c_sp
 
 	; pla
-	; sta		c_sp+1					; Restore original C stack Pointer
+	; sta		_Yreg
 	; pla
-	; sta		c_sp
+	; sta		_Xreg
+	; pla
+	; sta		_Areg
 
-	pla
-	sta		_Yreg
-	pla
-	sta		_Xreg
-	pla
-	sta		_Areg
+	; lda		ptr1+1					; push return address back on CPU stack
+	; pha
+	; lda		ptr1
+	; pha
 
-	lda		ptr1+1					; push return address back on CPU stack
-	pha
-	lda		ptr1
-	pha
-
-	lda		tmp4					; restore __A__
-	rts								; Return using the adjusted Stack Address
+	; lda		tmp4					; restore __A__
+	; rts								; Return using the adjusted Stack Address
 

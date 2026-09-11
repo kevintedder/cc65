@@ -44,16 +44,14 @@
 
 void service_claim_private_ws() {
 
-    // swr_print_str( "claim_private_ws" );
+// #ifdef SWR_DEBUG
+    // swr_print_str( SERVICE_NAME );
+	// dbg_print_byte( Areg );
     // swr_print_newline();
     // dbg_print_cpu_registers();
     // dbg_print_workspace();
-
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
-#endif
+    // swr_print_newline();
+// #endif
 
 #ifdef configure_pws
 
@@ -68,17 +66,9 @@ void service_claim_private_ws() {
 #endif
 
 #ifdef SWR_DEBUG
-	swr_print_str( "A:");
-	dbg_print_byte( Areg );
-	swr_print_str( " X:");
-	dbg_print_byte( Xreg );
-	swr_print_str( " Y:");
-	dbg_print_byte( Yreg );
-    swr_print_newline();
+	dbg_print_rom();
 #endif
 
 
-    // dbg_print_cpu_registers();
-    // dbg_print_workspace();
 }
 

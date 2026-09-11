@@ -39,7 +39,7 @@
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-void service_spool_closure() {
+long service_spool_closure( byte A, byte X, byte Y ) {
     // print_lite( "spool_closure " );
     // print_newline();
     // print_cpu_registers();
@@ -48,10 +48,16 @@ void service_spool_closure() {
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+
+
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
 #ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
+	dbg_print_rom();
 #endif
 
+	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }

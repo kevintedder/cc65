@@ -34,6 +34,7 @@
 
 #include <bbcswr/swr_print_lite.h>
 #include <bbcswr/swr.h>
+#include <bbcswr/swr_debug.h>
 #include <bbc/types.h>
 
 //  ################################################################################
@@ -58,25 +59,43 @@ void dbg_print_osbyte_registers(){
     dbg_print_byte( OS_Xreg );
     swr_print_str( " os_Y:");
     dbg_print_byte( OS_Yreg );
-    swr_print_newline();
 }
 void dbg_print_cpu_registers() {
-    swr_print_str( " A:");
+    swr_print_str( "A:");
     dbg_print_byte( Areg);
     swr_print_str( " X:");
     dbg_print_byte( Xreg);
     swr_print_str( " Y:");
     dbg_print_byte( Yreg);
-    swr_print_newline();
 }
 void dbg_print_workspace() {
     swr_print_str( " AWS:" );
     dbg_print_word( (word) aws );
     swr_print_str( " PWS:" );
     dbg_print_word( (word) pws );
+}
+
+void dbg_print_rom() {
+	// swr_print_str( SERVICE_NAME );
+	// dbg_print_byte( Areg );
+    // swr_print_newline();
+    dbg_print_cpu_registers();
+    dbg_print_workspace();
     swr_print_newline();
 }
 
+long dbg_print_reg( byte A, byte X, byte Y ) {
+	swr_print_str( "a:");
+	dbg_print_byte( A );
+	swr_print_str( " x:");
+	dbg_print_byte( X );
+	swr_print_str( " y:");
+	dbg_print_byte( Y );
+    swr_print_newline();
+	
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
+
+}
 
 /*
 

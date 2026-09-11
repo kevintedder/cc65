@@ -3,7 +3,7 @@
 ;
 ; crt0.s
 
-.export _exit
+.export _init, _exit
 .import callmain
 
 .export __STARTUP__ : absolute = 1
@@ -17,7 +17,7 @@
 .segment  "STARTUP"
 
 ; Essential 6502 startup the CPU doesn't do
-init:
+_init:
     ldx #$FF
     txs
     cld

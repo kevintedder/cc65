@@ -39,31 +39,23 @@
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-void service_break() {
-    // word* tmp;
-
-    // swr_print_str( "break " );
-    // print_newline();
-    // print_cpu_registers();
+long service_break( byte A, byte X, byte Y ) {
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
+
+
+    // --------------------------------//
+    // PLACE YOUR CODE ABOVE           //
+    // --------------------------------//
+
 #ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( Areg );
-    swr_print_newline();
+	dbg_print_rom();
 #endif
 
-    // tmp = 0xf0;
-    // print_byte( tmp );
-    // print_byte( tmp[0] );
-    // print_newline();
-
-    // tmp = 0xfd;
-    // print_byte( tmp );
-    // print_word( tmp[0] );
-    // print_newline();
+	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
+	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }
 

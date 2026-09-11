@@ -10,10 +10,11 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
+	.import		_dbg_print_rom
 	.export		_service_claim_aws_hazel
 
 ; ---------------------------------------------------------------
-; void __near__ service_claim_aws_hazel (void)
+; long __near__ service_claim_aws_hazel (unsigned char A, unsigned char X, unsigned char Y)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -23,9 +24,37 @@
 .segment	"CODE"
 
 ;
+; long service_claim_aws_hazel( byte A, byte X, byte Y ) {                  // Do nothing, but allows you to do something
+;
+	jsr     pusha
+;
+; dbg_print_rom();
+;
+	jsr     _dbg_print_rom
+;
+; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+;
+	ldx     #$00
+	lda     (c_sp,x)
+	stx     sreg+1
+	sta     sreg
+	txa
+	jsr     pusheax
+	ldy     #$05
+	lda     (c_sp),y
+	tax
+	lda     #$00
+	jsr     axlong
+	jsr     tosaddeax
+	jsr     pusheax
+	ldy     #$06
+	ldx     #$00
+	lda     (c_sp),y
+	jsr     tosadd0ax
+;
 ; }
 ;
-	rts
+	jmp     incsp3
 
 .endproc
 

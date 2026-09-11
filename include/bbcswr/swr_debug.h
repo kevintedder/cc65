@@ -36,11 +36,11 @@
 #ifndef SWR_DEBUG_H
 #define SWR_DEBUG_H
 
-// #define SWR_DEBUG
+#define SWR_DEBUG
 
 #include <bbc/types.h>
 
-#define SERVICE_NAME " SC:"
+#define SERVICE_NAME "SC:"
 
 //  ################################################################################
 //  ### THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out ###
@@ -50,5 +50,7 @@ void dbg_print_word( word value) ;
 void dbg_print_osbyte_registers();
 void dbg_print_cpu_registers();
 void dbg_print_workspace();
+void dbg_print_rom();
+long dbg_print_reg( byte A, byte X, byte Y );
 
 #endif

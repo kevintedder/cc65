@@ -13,6 +13,7 @@
 	.importzp	_Xreg
 	.importzp	_OS_Areg
 	.import		_paged_rom_ws
+	.import		_dbg_print_rom
 	.export		_service_claim_static_ws
 	.export		_service_release_static_ws
 
@@ -31,6 +32,7 @@
 ;
 	ldy     _Xreg
 	lda     _paged_rom_ws,y
+	ldx     #$00
 	and     #$80
 	beq     L0002
 ;
@@ -66,12 +68,13 @@
 ; paged_rom_ws[Xreg] = OS_Areg;
 ;
 	ldy     _Xreg
+	ldx     #$00
 	lda     _OS_Areg
 	sta     _paged_rom_ws,y
 ;
-; }
+; dbg_print_rom();
 ;
-L0002:	rts
+L0002:	jmp     _dbg_print_rom
 
 .endproc
 

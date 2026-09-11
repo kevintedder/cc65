@@ -43,12 +43,10 @@
 // be guarenteed to remain valid between service calls.
 struct aws {
 	byte	reserved[128];		// First 128 Bytes reserved for C Stack use during ROM service call.  DO NOT CHANGE
-	
-    byte	tmp1;
-    byte	tmp2;
-    word	tmp3;
-    word	tmp4;
-	
+    byte    tmp1;
+    byte    tmp2;
+    word    tmp3;
+    word    tmp4;
     byte	padding[128 - 6];	// Total = 255 Byte (1 x Page)	
 };								// Allocated to BSS Segment in page 0x0e00 (see BBCSWR.CFG)
 

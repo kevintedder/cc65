@@ -49,12 +49,6 @@ long service_unknown_command( byte A, byte X, byte Y ) {
     // PLACE YOUR CODE BELOW           //
     // --------------------------------//
 
-#ifdef SWR_DEBUG
-    swr_print_str( SERVICE_NAME );
-	dbg_print_byte( A );
-    swr_print_newline();
-#endif
-
     cmd_str = &cmd_ptr[Y];							// cmd pointers to the start of the command string
 	
 	for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
@@ -73,18 +67,9 @@ long service_unknown_command( byte A, byte X, byte Y ) {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
+#ifdef SWR_DEBUG
+	dbg_print_rom();
+#endif
+
 	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
 }
-
-
-// void test() {
-	// long t;
-	// byte a,x,y;
-
-	// t = service_unknown_command( 1,2,3);
-	
-	// a = t % 256;
-	// x = (t / 256) % 256;
-	// y = (t /65563) % 256;
-	
-// }

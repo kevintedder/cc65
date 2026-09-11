@@ -14,6 +14,7 @@
 	.import		_strcmp_cr
 	.import		_commands
 	.import		_swr_callback
+	.import		_dbg_print_rom
 	.export		_service_unknown_command
 
 ; ---------------------------------------------------------------
@@ -64,7 +65,11 @@ L0002:	ldy     #$03
 	sbc     #$00
 	bvc     L0006
 	eor     #$80
-L0006:	bpl     L0003
+L0006:	asl     a
+	lda     #$00
+	tax
+	rol     a
+	beq     L0003
 ;
 ; if (  strcmp_cr( cmd_str, commands[cmd_idx].command ) == 0  ) {
 ;
@@ -107,7 +112,8 @@ L0006:	bpl     L0003
 ;
 ; A = 0;                          // Prevent further ROMs from processing this cmd
 ;
-	lda     #$00
+	ldx     #$00
+	txa
 	ldy     #$06
 	sta     (c_sp),y
 ;
@@ -123,9 +129,13 @@ L0004:	ldy     #$02
 	jsr     addeqysp
 	jmp     L0002
 ;
+; dbg_print_rom();
+;
+L0003:	jsr     _dbg_print_rom
+;
 ; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A; // Return the values of A, X, Y
 ;
-L0003:	ldy     #$04
+	ldy     #$04
 	ldx     #$00
 	lda     (c_sp),y
 	stx     sreg+1

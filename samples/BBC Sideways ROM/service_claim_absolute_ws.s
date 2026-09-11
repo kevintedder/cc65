@@ -12,6 +12,7 @@
 	.macpack	longbranch
 	.importzp	_aws
 	.importzp	_Yreg
+	.import		_dbg_print_rom
 	.export		_service_claim_absolute_ws
 
 ; ---------------------------------------------------------------
@@ -49,6 +50,10 @@
 	lda     #$00
 	sta     _aws
 	stx     _aws+1
+;
+; dbg_print_rom();
+;
+	jmp     _dbg_print_rom
 ;
 ; }
 ;

@@ -14,11 +14,11 @@
 .data
 
 sigtable:
-        .word   ___sig_dfl		; SIGABRT	Abort signal
-        .word   ___sig_dfl		; SIGFPE	Erroneous arithmetic operation
-        .word   ___sig_dfl		; SIGILL	Illegal Instruction
-        .word   ___sig_dfl		; SIGINT	Interrupt from keyboard
-        .word   ___sig_dfl		; SIGSEGV	Invalid memory reference
-        .word   ___sig_dfl		; SIGTERM	Termination signal
+        .word   ___sig_dfl      ; SIGABRT
+        .word   ___sig_dfl      ; SIGFPE
+        .word   ___sig_dfl      ; SIGILL
+        .word   ___sig_dfl      ; SIGINT
+        .word   ___sig_dfl      ; SIGSEGV
+        .word   ___sig_dfl      ; SIGTERM
 
 

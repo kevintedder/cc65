@@ -14,6 +14,7 @@
 	.importzp	_Xreg
 	.importzp	_Yreg
 	.import		_paged_rom_ws
+	.import		_dbg_print_rom
 	.export		_service_claim_private_ws
 
 ; ---------------------------------------------------------------
@@ -55,9 +56,9 @@ L0002:	sta     _pws
 	sta     _pws
 	stx     _pws+1
 ;
-; }
+; dbg_print_rom();
 ;
-	rts
+	jmp     _dbg_print_rom
 
 .endproc
 

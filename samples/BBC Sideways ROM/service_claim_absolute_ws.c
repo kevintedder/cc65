@@ -34,14 +34,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-#define configure_aws           // Optional - If defined, include code to claim Absolute workspace
+#define AWS_SIZE  sizeof(struct aws) // include code to claim Absolute workspace if size > 0
 
-// struct aws aws;                 // declare uninitialised variable, from /include/bbcswr/swr.h,  in
+// struct aws aws;				// declare uninitialised variable, from /include/bbcswr/swr.h,  in
                                 // segment BSS @ 0x0e00.  All ROM variables must be placed in
                                 // here. No access outside the AWS is permitted.
 //  Reference all ROM variables as :
@@ -52,24 +52,45 @@
 
 void service_claim_absolute_ws() {
 
-#ifdef configure_aws
+//	On entry:   Areg	=	ROM Service Type requested
+//				Xreg	= 	Current ROM Number
+//				Yreg	= 	Any parameter required for the service
+
+#ifdef SWR_DEBUG
+	swr_print_str( "service_claim_absolute_ws:Begin" );
+	swr_print_newline();
+#endif
 
 //	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
 //					the C stack whilst the ROM initialises AWS
 
-// 	Start with OSHWM + size of AWS in 256 byte pages + 1
-    aws = (struct aws *)( 0x0e + ( sizeof(struct aws) / 256 ) );
+	if ( AWS_SIZE > 0 ) {	// code to claim Absolute workspace if size > 0
 	
-    if ( (byte)aws > Yreg ) {
-		Yreg = (byte)aws;
-        aws = (struct aws *)0x0e00;
+//		Start with OSHWM + size of AWS in 256 byte pages 
+		aws = (struct aws *)( Yreg + ( AWS_SIZE / 256 ) + 1 );
+		
+		if ( (byte)aws > Yreg ) {
+			Yreg = (byte)aws;
+			aws = (struct aws *)0x0e00;
+		}
 
+	}
+	
 #ifdef SWR_DEBUG
+	swr_print_str( "service_claim_absolute_ws:End" );
+	swr_print_newline();
+
+	swr_print_str("aws: a:");
+	dbg_print_byte( Areg );
+	swr_print_str(" x:");
+	dbg_print_byte( Xreg );
+	swr_print_str(" y:");
+	dbg_print_byte( Yreg );
+	swr_print_str(" ");
+	dbg_print_word( (word)aws );
+	swr_print_newline();
+
 	dbg_print_rom();
-#endif
-
-    }
-
 #endif
 
 }

@@ -155,7 +155,8 @@ $(TARGETS): | ../lib
 else # TARGET
 
 CA65FLAGS = -v
-CC65FLAGS = -v -Osir -W error
+CC65FLAGS = -v -Osir 
+# CC65FLAGS = -v -Osir -W error
 
 EXTZP = cbm510 \
         cbm610 \

@@ -10,15 +10,30 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
+	.importzp	_Areg
+	.importzp	_Yreg
 	.importzp	_cmd_ptr
+	.export		_service_unknown_command
+	.import		_service_routine_pre_call
+	.import		_service_routine_post_call
 	.import		_strcmp_cr
+	.import		_swr_print_str
+	.import		_swr_print_newline
 	.import		_commands
 	.import		_swr_callback
 	.import		_dbg_print_rom
-	.export		_service_unknown_command
+
+.segment	"RODATA"
+
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
+	.byte	$63,$6F,$6D,$6D,$61,$6E,$64,$3A,$42,$65,$67,$69,$6E,$00
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
+	.byte	$63,$6F,$6D,$6D,$61,$6E,$64,$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
-; long __near__ service_unknown_command (unsigned char A, unsigned char X, unsigned char Y)
+; void __near__ service_unknown_command (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -28,22 +43,35 @@
 .segment	"CODE"
 
 ;
-; long service_unknown_command( byte A, byte X, byte Y ) {
-;
-	jsr     pusha
-;
 ; int cmd_idx = 0;
 ;
 	jsr     push0
 ;
-; cmd_str = &cmd_ptr[Y];       // cmd pointers to the start of the command string
+; swr_print_str( "service_unknown_command:Begin" );
 ;
 	jsr     decsp2
-	ldy     #$04
-	lda     (c_sp),y
-	clc
-	adc     _cmd_ptr
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; dbg_print_rom();
+;
+	jsr     _dbg_print_rom
+;
+; service_routine_pre_call();   
+;
+	jsr     _service_routine_pre_call
+;
+; cmd_str = &cmd_ptr[Yreg];      // cmd pointers to the start of the command string
+;
+	lda     _cmd_ptr
 	ldx     _cmd_ptr+1
+	clc
+	adc     _Yreg
 	bcc     L0009
 	inx
 L0009:	jsr     stax0sp
@@ -110,12 +138,11 @@ L0006:	asl     a
 	lda     (ptr1),y
 	jsr     _swr_callback
 ;
-; A = 0;                          // Prevent further ROMs from processing this cmd
+; Areg = 0;                         // Prevent further ROMs from processing this cmd
 ;
 	ldx     #$00
 	txa
-	ldy     #$06
-	sta     (c_sp),y
+	sta     _Areg
 ;
 ; break;
 ;
@@ -129,34 +156,27 @@ L0004:	ldy     #$02
 	jsr     addeqysp
 	jmp     L0002
 ;
+; service_routine_post_call();
+;
+L0003:	jsr     _service_routine_post_call
+;
+; swr_print_str( "service_unknown_command:End" );
+;
+	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
 ; dbg_print_rom();
 ;
-L0003:	jsr     _dbg_print_rom
-;
-; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A; // Return the values of A, X, Y
-;
-	ldy     #$04
-	ldx     #$00
-	lda     (c_sp),y
-	stx     sreg+1
-	sta     sreg
-	txa
-	jsr     pusheax
-	ldy     #$09
-	lda     (c_sp),y
-	tax
-	lda     #$00
-	jsr     axlong
-	jsr     tosaddeax
-	jsr     pusheax
-	ldy     #$0A
-	ldx     #$00
-	lda     (c_sp),y
-	jsr     tosadd0ax
+	jsr     _dbg_print_rom
 ;
 ; }
 ;
-	jmp     incsp7
+	jmp     incsp4
 
 .endproc
 

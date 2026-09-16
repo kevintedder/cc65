@@ -11,70 +11,119 @@
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.importzp	_Xreg
-	.importzp	_OS_Areg
 	.import		_paged_rom_ws
+	.export		_claim_static_aws
+	.import		_swr_print_str
+	.import		_swr_print_newline
 	.import		_dbg_print_rom
-	.export		_service_claim_static_ws
 	.export		_service_release_static_ws
 
+.segment	"RODATA"
+
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$72,$65,$6C,$65,$61,$73,$65,$5F
+	.byte	$73,$74,$61,$74,$69,$63,$5F,$77,$73,$3A,$42,$65,$67,$69,$6E,$00
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$72,$65,$6C,$65,$61,$73,$65,$5F
+	.byte	$73,$74,$61,$74,$69,$63,$5F,$77,$73,$3A,$45,$6E,$64,$00
+S000D:
+	.byte	$49,$73,$73,$75,$65,$20,$52,$4F,$4D,$20,$73,$65,$72,$76,$69,$63
+	.byte	$65,$3A,$42,$65,$67,$69,$6E,$00
+S000C:
+	.byte	$63,$6C,$61,$69,$6D,$5F,$73,$74,$61,$74,$69,$63,$5F,$61,$77,$73
+	.byte	$3A,$42,$65,$67,$69,$6E,$00
+S0011:
+	.byte	$49,$73,$73,$75,$65,$20,$52,$4F,$4D,$20,$73,$65,$72,$76,$69,$63
+	.byte	$65,$3A,$45,$6E,$64,$00
+S0012:
+	.byte	$63,$6C,$61,$69,$6D,$5F,$73,$74,$61,$74,$69,$63,$5F,$61,$77,$73
+	.byte	$3A,$45,$6E,$64,$00
+
 ; ---------------------------------------------------------------
-; void __near__ service_claim_static_ws (void)
+; void __near__ claim_static_aws (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
 
-.proc	_service_claim_static_ws: near
+.proc	_claim_static_aws: near
 
 .segment	"CODE"
 
 ;
-; if ( ( paged_rom_ws[Xreg] & 0x80 ) != 0x0 ) { // Is this ROM the AWS Owner
+; swr_print_str( "claim_static_aws:Begin" );
 ;
-	ldy     _Xreg
-	lda     _paged_rom_ws,y
-	ldx     #$00
-	and     #$80
-	beq     L0002
+	lda     #<(S000C)
+	ldx     #>(S000C)
+	jsr     _swr_print_str
 ;
-; OS_Areg = paged_rom_ws[Xreg] | 0x80; // Set Bit 7 = Claim AWS Owner
+; swr_print_newline();
 ;
-	ldy     _Xreg
-	lda     _paged_rom_ws,y
-	ora     #$80
-	sta     _OS_Areg
-;
-; paged_rom_ws[Xreg] = OS_Areg;
-;
-	ldy     _Xreg
-	lda     _OS_Areg
-	sta     _paged_rom_ws,y
-;
-; asm("lda #143");
-;
-	lda     #143
-;
-; asm("ldx #10");
-;
-	ldx     #10
-;
-; asm("ldy #0");
-;
-	ldy     #0
-;
-; asm("jsr  $fffe");
-;
-	jsr     $fffe
-;
-; paged_rom_ws[Xreg] = OS_Areg;
-;
-	ldy     _Xreg
-	ldx     #$00
-	lda     _OS_Areg
-	sta     _paged_rom_ws,y
+	jsr     _swr_print_newline
 ;
 ; dbg_print_rom();
 ;
-L0002:	jmp     _dbg_print_rom
+	jsr     _dbg_print_rom
+;
+; if ( ( paged_rom_ws[Xreg] & 0x80 ) == 0x0 ) { // Is this ROM the AWS Owner?
+;
+	ldy     _Xreg
+	lda     _paged_rom_ws,y
+	and     #$80
+	bne     L0002
+;
+; swr_print_str( "Issue ROM service:Begin" );
+;
+	lda     #<(S000D)
+	ldx     #>(S000D)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; asm("ldx #$0a");       // Service call - Claim Static AWS
+;
+	ldx     #$0a
+;
+; asm("jsr  _issue_rom_service_call");
+;
+	jsr     _issue_rom_service_call
+;
+; swr_print_str( "Issue ROM service:End" );
+;
+	lda     #<(S0011)
+	ldx     #>(S0011)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; paged_rom_ws[Xreg] = paged_rom_ws[Xreg] | 0x80;    // Set Bit 7 = Claim AWS Ownership
+;
+	lda     #<(_paged_rom_ws)
+	ldx     #>(_paged_rom_ws)
+	clc
+	adc     _Xreg
+	bcc     L0005
+	inx
+L0005:	sta     ptr1
+	stx     ptr1+1
+	ldy     _Xreg
+	lda     _paged_rom_ws,y
+	ora     #$80
+	ldy     #$00
+	sta     (ptr1),y
+;
+; swr_print_str( "claim_static_aws:End" );
+;
+L0002:	lda     #<(S0012)
+	ldx     #>(S0012)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jmp     _swr_print_newline
 
 .endproc
 
@@ -89,22 +138,45 @@ L0002:	jmp     _dbg_print_rom
 .segment	"CODE"
 
 ;
-; OS_Areg = paged_rom_ws[Xreg] & 0x7f; // Set Bit 7 = Claim AWS Owner
+; swr_print_str( "service_release_static_ws:Begin" );
 ;
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; dbg_print_rom();
+;
+	jsr     _dbg_print_rom
+;
+; paged_rom_ws[Xreg] = paged_rom_ws[Xreg] & 0x7f;     // Clear Bit 7 = Release AWS Ownership
+;
+	lda     #<(_paged_rom_ws)
+	ldx     #>(_paged_rom_ws)
+	clc
+	adc     _Xreg
+	bcc     L0002
+	inx
+L0002:	sta     ptr1
+	stx     ptr1+1
 	ldy     _Xreg
 	lda     _paged_rom_ws,y
 	and     #$7F
-	sta     _OS_Areg
+	ldy     #$00
+	sta     (ptr1),y
 ;
-; paged_rom_ws[Xreg] = OS_Areg;
+; swr_print_str( "service_release_static_ws:End" );
 ;
-	ldy     _Xreg
-	lda     _OS_Areg
-	sta     _paged_rom_ws,y
+	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
 ;
-; }
+; swr_print_newline();
 ;
-	rts
+	jmp     _swr_print_newline
 
 .endproc
 

@@ -34,31 +34,46 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
-#include <bbcswr/swr_cmds.h>
+
+#include <bbcswr/bbcswr.h>
+#include <bbcswr/bbcswr_cmds.h>
 #include <bbcswr/swr_callback.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-long service_unknown_command( byte A, byte X, byte Y ) {
+void service_unknown_command() {
+
+//	On entry:   Areg	=	ROM Service Type requested
+//				Xreg	= 	Current ROM Number
+//				Yreg	= 	Any parameter required for the service
+
+
 	int cmd_idx = 0;
-    char *cmd_str;
+	char *cmd_str;
 	
-    // --------------------------------//
+ 
+#ifdef SWR_DEBUG
+	swr_print_str( "service_unknown_command:Begin" );
+	swr_print_newline();
+	dbg_print_rom();
+#endif
+
+	service_routine_pre_call();			
+
+	// --------------------------------//
     // PLACE YOUR CODE BELOW           //
     // --------------------------------//
 
-    cmd_str = &cmd_ptr[Y];							// cmd pointers to the start of the command string
+    cmd_str = &cmd_ptr[Yreg];						// cmd pointers to the start of the command string
 	
 	for( cmd_idx = 0; cmd_idx < cmd_count; cmd_idx++ ) {
 				
 		if (  strcmp_cr( cmd_str, commands[cmd_idx].command ) == 0  ) {
-			// Command recognised
 
+			// Command recognised
 			swr_callback( commands[cmd_idx].func );	// Call the recognised command
 
-			A = 0;                   		    	// Prevent further ROMs from processing this cmd
+			Areg = 0;                   		    // Prevent further ROMs from processing this cmd
 			break;
 		}
 	}
@@ -67,9 +82,12 @@ long service_unknown_command( byte A, byte X, byte Y ) {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
+	service_routine_post_call();
+
 #ifdef SWR_DEBUG
+	swr_print_str( "service_unknown_command:End" );
+	swr_print_newline();
 	dbg_print_rom();
 #endif
 
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
 }

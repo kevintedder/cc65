@@ -36,6 +36,19 @@
 	.include	"bbc/os.inc"
 	.include	"bbcswr/swr.inc"	; This includes a Dummy ROM Title, override with new file in SAMPLES/BBCSWR
 
+	.importzp	c_sp, sreg, regsave
+	.importzp	ptr1, ptr2, ptr3, ptr4
+    .importzp	tmp1, tmp2, tmp3, tmp4
+    .importzp	regbank
+
+	.export		_paged_rom_ws
+	.globalzp	_aws, _pws
+	.globalzp	_Areg, _Xreg, _Yreg
+	.exportzp	_OS_Areg, _OS_Xreg, _OS_Yreg, _cmd_ptr
+
+	.import		decsp2, decsp4, incsp2, incsp4
+	.import		_itoa, pushax, steax0sp
+
 	.import		_service_no_op
 	.import		_service_claim_absolute_ws
 	.import		_service_claim_private_ws
@@ -46,7 +59,6 @@
 	.import		_service_unknown_osbyte
 	.import		_service_unknown_osword
 	.import		_service_help
-	.import		_service_claim_static_ws
 	.import		_service_release_static_ws
 	.import		_service_nmi_release
 	.import		_service_nmi_claim
@@ -77,53 +89,54 @@
 	.import		_service_swram_size
 	.import		_service_joystick
 
+	.import		_claim_static_aws
+	
+	.import		_dbg_print_header
+	.import		_dbg_print_nibble
+	.import		_dbg_print_byte
+	.import		_dbg_print_word
+	.import		_dbg_print_long
+	.import		_dbg_print_osbyte_registers
+	.import		_dbg_print_cpu_registers
+	.import		_dbg_print_workspace
+	.import		_dbg_print_rom
 	.import		_dbg_print_reg
-	.import		pusha
-	.import		OSWRCH, OSNEWL
 	
-	.import		decsp2, decsp4, incsp2, incsp4
-	.import		_itoa, pushax, steax0sp
-	; .import		_osbyte
+
+	.import		_osbyte
+	.import		OSWRCH
+	.import		OSNEWL
 	
+
 	.export		__STARTUP__ : absolute = 1        ; Mark as startup
 	.export		_SWR_Title, _SWR_Version
-	.export		_paged_rom_ws
-	; .export		_claim_static_workspace, _release_static_workspace
-	; .export	_claim_vectors
 
+	.export		_service_routine_pre_call		
+	.export		_service_routine_post_call
+	.export		_issue_rom_service_call
 	
-	.importzp	c_sp, sreg, regsave
-	.importzp	ptr1, ptr2, ptr3, ptr4
-    .importzp	tmp1, tmp2, tmp3, tmp4
-    .importzp	regbank
-
-	.exportzp	_aws, _pws
-	.exportzp	_Areg, _Xreg, _Yreg
-	.exportzp	_OS_Areg, _OS_Xreg, _OS_Yreg, _cmd_ptr
-
 ; ------------------------------------------------------------------------
 ; BBC Sideways ROM runtime
 
-; Define Zero Page labels for CC65 'C' language - these can be  
-; moved within Page Zero if they clash with other services
-
-;	Using Zeropage $f8 - $fb ; OS temporaray workspace
-	_aws		= $f8		; 16 Bit pointer (&f8/&f9) to Absolute Workspace exported to 'C'
-	_pws		= $fa		; 16 Bit pointer (&fa/&fb) to Private Workspace exported to 'C'
-
-;	OS Zeropage general workspace
-	_Areg		= $e4		; 8 Bit - Save __A__ Reg during service call
-	_Xreg		= $e5		; 8 Bit - Save __X__ Reg during service call
-	_Yreg		= $e6		; 8 Bit - Save __Y__ Reg during service call
-
-;	OS Zeropage defined locations
-	_OS_Areg	= $ef		; Copy of __A__ reg for OSBYTE/OSWORD calls
-	_OS_Xreg	= $f0		; Copy of __X__ reg for OSBYTE/OSWORD calls
-	_OS_Yreg	= $f1		; Copy of __Y__ reg for OSBYTE/OSWORD calls
-	_cmd_ptr	= $f2		; 16 Bit pointer to Cmd
-
 	_paged_rom_ws = $0df0
 
+; Define Zero Page labels for CC65 'C' language - these can be  
+; moved within Page Zero if they clash with other services
+.zeropage
+
+;	Using Zeropage, reserved by BASIC for user space ($70 - $8F)
+	_aws:		.res 2      ; 16 Bit pointer (&70/&71) to Absolute Workspace exported to 'C'
+	_pws:		.res 2      ; 16 Bit pointer (&72/&73) to Private Workspace exported to 'C'
+
+	_Areg:		.res 1		; 8 Bit - Save __A__ Reg during service call
+	_Xreg:		.res 1		; 8 Bit - Save __A__ Reg during service call
+	_Yreg:		.res 1		; 8 Bit - Save __A__ Reg during service call
+
+;	OS Zeropage defined locations
+	_OS_Areg	= $ef		; 8 Bit - Copy of __A__ reg for OSBYTE/OSWORD calls
+	_OS_Xreg	= $f0		; 8 Bit - Copy of __X__ reg for OSBYTE/OSWORD calls
+	_OS_Yreg	= $f1		; 8 Bit - Copy of __Y__ reg for OSBYTE/OSWORD calls
+	_cmd_ptr	= $f2		; 16 Bit pointer to Cmd
 
 ; ------------------------------------------------------------------------
 ;	
@@ -210,22 +223,25 @@ _Language_Entry:
 
 ; ------------------------------------------------------------------------
 _service_entry_point:
-									; On entry, 
-									;	__A__ = service ID, 
-									;	__X__ = ROM number, 
-									;	__Y__ = parameter (if necessary)
 
-; Call the requested service routine using the Service ID as 
-; an index into the Service Index Table above
+;	On entry:   __A__	=	ROM Service Type requested
+;				__X__	= 	Current ROM Number
+;				__Y__	= 	Any parameter required for the service
 
-	jsr		_save_regs				; Preserve Reg __A__, __X__, __Y__ to page zero throughout service call
+;	To make these ROM services re-entrant
 
+;	Save CPU registers
+	sta		_Areg
+	stx		_Xreg
+	sty		_Yreg
+
+; Call the requested service routine using the Service ID (CPU Reg __A__) 
+; as the index into the Service Index Table above
 	cmp		#48						; Compare Service Call ID 
 	bcc		_service0_48			;     < 48
 	jmp		_service48_255			;     >= 48
 
 _service0_48:
-
 	asl		a 						; Multiply by 2, point into 16-bit address table
 	tax								; Move Service ID to X
 	lda		_service_index_table,x
@@ -233,213 +249,93 @@ _service0_48:
 	lda		_service_index_table+1,x
 	sta		ptr1+1					; temp Page Zero Address
 
-	; jsr		_restore_regs
 	jmp		(ptr1)					; Call Service(x) indirectly
 
 ; ------------------------------------------------------------------------
 ; Define each service routine
 
-_service0:							; Do nothing
-	jsr		_service_no_op
-	jmp		_service_routine_post_call
+_service0:									; Do nothing
+	jmp		_service_no_op
 
-_service1:							; stake a claim for Asbolute WorkSpace
-	; jsr		_initialise_stack_pointer	; C stack not required here
+_service1:									; stake a claim for Asbolute WorkSpace
 	jsr		_service_claim_absolute_ws
-	jmp		_restore_regs			; Restore current service call registers
-	; jmp		_service_routine_post_call
+	jmp		_restore_regs					; Restore current service call registers
 
-_service2:							; Stake a claim for Private Workspace
-	; jsr		_initialise_stack_pointer	; C stack not required here
-	jsr		_service_claim_private_ws
-	jmp		_restore_regs			; Restore current service call registers
-	; jmp		_service_routine_post_call
+_service2:									; Stake a claim for Private Workspace
+	jsr		_service_claim_private_ws		; Set up PWS
+	jmp		_restore_regs					; Restore current service call registers
 
-_service3:							; Auto_Boot initialise
-	jsr		_service_routine_pre_call
-	jsr		_service_auto_boot
-	jmp		_service_routine_post_call
+_service3:									; Auto_Boot initialise
+	jmp		_service_auto_boot
 
 _service4:
-	jsr		_service_routine_pre_call
-	jsr		_service_unknown_command
-	jmp		_service_routine_post_call
+	jmp		_service_unknown_command
 
 _service5:
-	jsr		_service_routine_pre_call
-	jsr		_service_unknown_interrupt
-	jmp		_service_routine_post_call
+	jmp		_service_unknown_interrupt
 
 _service6:
-	jsr		_service_routine_pre_call
-	jsr		_service_break 
-	jmp		_service_routine_post_call
+	jmp		_service_break 
 
 _service7:
-	jsr		_service_routine_pre_call
-	jsr		_service_unknown_osbyte
-	jmp		_service_routine_post_call
+	jmp		_service_unknown_osbyte
 
 _service8:
-	jsr		_service_routine_pre_call
-	jsr		_service_unknown_osword
-	jmp		_service_routine_post_call
+	jmp		_service_unknown_osword
 
 _service9:
-	jsr		_service_routine_pre_call
-	jsr		_service_help
-	jmp		_service_routine_post_call
+	jmp		_service_help
 
 _service10:
-	jsr		_service_routine_pre_call
 	jsr		_service_release_static_ws
-	jmp		_service_routine_post_call
+	jmp		_restore_regs					; Restore current service call registers
 
 _service11:
-	jsr		_service_routine_pre_call
-	jsr		_service_nmi_release
-	jmp		_service_routine_post_call
+	jmp		_service_nmi_release
 
 _service12:
-	jsr		_service_routine_pre_call
-	jsr		_service_nmi_claim
-	jmp		_service_routine_post_call
+	jmp		_service_nmi_claim
 
 _service13:
-	jsr		_service_routine_pre_call
-	jsr		_service_initilise_rom_fs
-	jmp		_service_routine_post_call
+	jmp		_service_initilise_rom_fs
 
 _service14:
-	jsr		_service_routine_pre_call
-	jsr		_service_rom_fs_get_byte
-	jmp		_service_routine_post_call
+	jmp		_service_rom_fs_get_byte
 
 _service15:
-	jsr		_service_routine_pre_call
-	jsr		_service_vector_claim
-	jmp		_service_routine_post_call
+	jmp		_service_vector_claim
 
 _service16:
-	jsr		_service_routine_pre_call
-	jsr		_service_spool_closure
-	jmp		_service_routine_post_call
+	jmp		_service_spool_closure
 
 _service17:
-	jsr		_service_routine_pre_call
-	jsr		_service_font_explosion
-	jmp		_service_routine_post_call
+	jmp		_service_font_explosion
 
 _service18:
-	jsr		_service_routine_pre_call
-	jsr		_service_filesystem_init
-	jmp		_service_routine_post_call
+	jmp		_service_filesystem_init
 
 _service19:
-	jsr		_service_routine_pre_call
-	jsr		_service_char_in_rs232_buffer
-	jmp		_service_routine_post_call
+	jmp		_service_char_in_rs232_buffer
 
 _service20:
-	jsr		_service_routine_pre_call
-	jsr		_service_char_in_print_buffer
-	jmp		_service_routine_post_call
+	jmp		_service_char_in_print_buffer
 
 _service21:
-	jsr		_service_routine_pre_call
-	jsr		_service_10hz_poll
-	jmp		_service_routine_post_call
+	jmp		_service_10hz_poll
 
 _service22:
-	jsr		_service_routine_pre_call
-	jsr		_service_bell_request
-	jmp		_service_routine_post_call
+	jmp		_service_bell_request
 
 _service23:
-	jsr		_service_routine_pre_call
-	jsr		_service_sound_buffer_purged
-	jmp		_service_routine_post_call
+	jmp		_service_sound_buffer_purged
 
 _service24:
-	jsr		_service_routine_pre_call
-	jsr		_service_interactive_help
-	jmp		_service_routine_post_call
+	jmp		_service_interactive_help
 
 _service25:
-	jsr		_service_routine_pre_call
-	jsr		_service_claim_aws_hazel
-	jmp		_service_routine_post_call
+	jmp		_service_claim_aws_hazel
 
 ; ROM Services 26 - 32 do not exists. These call are moved to the end of this list.
-;_service26:
-;_service27:
-;_service28:
-;_service29:
-;_service30:
-;_service31:
-;_service32:
-
-_service33:
-	jsr		_service_routine_pre_call
-	jsr		_service_claim_aws_hazel
-	jmp		_service_routine_post_call
-
-_service34:
-	jsr		_service_routine_pre_call
-	jsr		_service_claim_pws_hazel
-	jmp		_service_routine_post_call
-
-_service35:
-	jsr		_service_routine_pre_call
-	jsr		_service_top_aws_hazel
-	jmp		_service_routine_post_call
-
-_service36:
-	jsr		_service_routine_pre_call
-	jsr		_service_request_pws_hazel
-	jmp		_service_routine_post_call
-
-_service37:
-	jsr		_service_routine_pre_call
-	jsr		_service_return_filesys_info
-	jmp		_service_routine_post_call
-
-_service38:
-	jsr		_service_routine_pre_call
-	jsr		_service_shut_issued
-	jmp		_service_routine_post_call
-
-_service39:
-	jsr		_service_routine_pre_call
-	jsr		_service_reset_call
-	jmp		_service_routine_post_call
-
-_service40:
-	jsr		_service_routine_pre_call
-	jsr		_service_unknown_conf_cmd
-	jmp		_service_routine_post_call
-
-_service41:
-	jsr		_service_routine_pre_call
-	jsr		_service_unknown_status
-	jmp		_service_routine_post_call
-
-_service42:
-	jsr		_service_routine_pre_call
-	jsr		_service_language_init
-	jmp		_service_routine_post_call
-
-_service43:
-	jsr		_service_routine_pre_call
-	jsr		_service_swram_size
-	jmp		_service_routine_post_call
-
-_service44:
-	jsr		_service_routine_pre_call
-	jsr		_service_joystick
-	jmp		_service_routine_post_call
-
-
 _service26:
 _service27:
 _service28:
@@ -448,38 +344,71 @@ _service30:
 _service31:
 _service32:
 
+	jmp		_service_unknown
+
+_service33:
+	jmp		_service_claim_aws_hazel
+
+_service34:
+	jmp		_service_claim_pws_hazel
+
+_service35:
+	jmp		_service_top_aws_hazel
+
+_service36:
+	jmp		_service_request_pws_hazel
+
+_service37:
+	jmp		_service_return_filesys_info
+
+_service38:
+	jmp		_service_shut_issued
+
+_service39:
+	jmp		_service_reset_call
+
+_service40:
+	jmp		_service_unknown_conf_cmd
+
+_service41:
+	jmp		_service_unknown_status
+
+_service42:
+	jmp		_service_language_init
+
+_service43:
+	jmp		_service_swram_size
+
+_service44:
+	jmp		_service_joystick
+
 _service45:
 _service46:
 _service47:
 
-
 	jmp		_service_unknown
 
 
-_service48_255:
-	jsr		_restore_regs
+_service48_255:	
+	lda		_Areg
+	ldx		_Xreg
 
 ; ------------------------------------------------------------------------
 _service254:
 	cmp		#$FE					; Tube Post Initilisation
 	bne		_service255
 
-	jsr		_service_routine_pre_call
-	jsr		_service_tube_post_init
-	jmp		_service_routine_post_call
+	jmp		_service_tube_post_init
 
 ; ------------------------------------------------------------------------
 _service255:
 	cmp		#$FF					; Tube Main Initilisation
 	bne		_service_unknown
 
-	jsr		_service_routine_pre_call
-	jsr		_service_tube_main_init
-	; jmp		_service_routine_post_call
+	jmp		_service_tube_main_init
 
 _service_unknown:					; ROM Service call not identified
-	jmp		_service_routine_post_call
-
+	rts
 
 ; ------------------------------------------------------------------------
 _service_routine_pre_call:			
@@ -487,213 +416,87 @@ _service_routine_pre_call:
 ;	Setup the CC65 'C' environment and prepare the A,X,Y parameter
 ;	on the C stack.
 
-;	On entry:    	Areg	=	ROM Service Type requested
-;					Xreg 	= 	Current ROM Number
-;					Yreg	= 	Any parameter required for the service
-;					
-	jsr		_service_claim_static_ws
-	jsr		_initialise_aws_pointer
-	jsr		_initialise_pws_pointer
-	jsr		_initialise_stack_pointer
+;	On entry:   _Areg	=	ROM Service Type requested
+;				_Xreg	= 	Current ROM Number
+;				_Yreg	= 	Any parameter required for the service
 
-	; Prepare C stack using save reg values - Areg, Xreg, Yreg
-	jsr     decsp2
-	lda     _Areg
-	tay
-	sta     (c_sp),y				; Push Areg to C stack
-	lda     _Xreg
-	dey
-	sta     (c_sp),y				; Push Xreg to C stack
-	lda     _Yreg					; Leave Yreg in A as __fastcall__
-									; Will be pushed to C stack by called function
-	
+;	Claim AWS for this service call - all other ROMs shall release it
+	jsr		_claim_static_aws
+
+;	Prepare AWS pointer
+ 	lda		#$0e					; Set pointer to Absolute workspace
+ 	sta		_aws+1
+ 	lda		#$00
+ 	sta		_aws
+
+; 	Prepare PWS pointer
+	ldx		_Xreg					; Get ROM No
+	lda		_paged_rom_ws,x			; Retrieve the PWS page address
+	and		#$7f					; Mask out bit 2^7 (AWS owner)
+	sta 	_pws + 1				; Set pointer to Private workspace
+	lda		#$00
+	sta 	_pws
+
+;	Prepare C Stack pointer from PWS
+	ldy		#$80						; Offset to PWS->c_stack_ptr
+	lda		(_pws),y					; Load from PWS
+	sta		c_sp						; Low Byte of C Stack
+	lda		_pws+1
+	sta		c_sp+1						; High Byte of C Stack
+
 	rts								; Return - Next instruction will be JSR to service
+
 
 ; ------------------------------------------------------------------------
 _service_routine_post_call:
 ;	Tidy up after calling service routine and restore regs __A__, __X__, __Y__
 ;	with the returned value from the called service in EAX (as a long).
 
-;						   |Sreg+1| Sreg | Xreg | Areg |
-;	On Entry:		EAX	=  |0x00  | __Y__| __X__| __A__|
+;	On entry:   _Areg	=	ROM Service Type requested
+;				_Xreg	= 	Current ROM Number
+;				_Yreg	= 	Any parameter required for the service
 
-	jsr		_save_regs
+;	Save C-Stack pointer to this ROMs PWS
+	lda		c_sp						; Lower Byte of C Stack
+	ldy		#$80						; Offset to PWS->c_stack_ptr
+	sta		(_pws),y					; Save in PWS->c_stack_ptr
 
-	lda		_Areg
-	jsr		_print_byte					; Print A
-	lda		_Xreg
-	jsr		_print_byte					; Print X
-	lda		_Yreg
-	jsr		_print_byte					; Print Y
-	jsr		OSNEWL
-	
-	jsr		_restore_regs
+_restore_regs:
 
-	ldy		sreg					; Set Y - 3rd Byte of EAX 
-
-	rts
-
-
-_nibble:
-.byte		"0123456789ABCDEF", $00
-
-_print_nibble:
-	lda		_nibble,x
-	jsr		OSWRCH
-	rts
-
-_print_byte:
-	pha
-
-	lda		#'0'
-	jsr		OSWRCH
-	lda		#'x'
-	jsr		OSWRCH
-
-	pla
-	pha
-	lsr		a
-	lsr		a
-	lsr		a
-	lsr		a
-	tax
-	jsr		_print_nibble
-
-	pla
-	and		#$0f
-	tax
-	jsr		_print_nibble
-	
-	lda		#' '
-	jsr		OSWRCH
-	
-
-; ------------------------------------------------------------------------
-_initialise_aws_pointer:			; Set Pointer to Work Space (AWS/PWS).
-
- 	lda		#$0e					; Set pointer to Absolute workspace
- 	sta		_aws+1
- 	lda		#$00
- 	sta		_aws
-
-	rts
-
-; ------------------------------------------------------------------------
-_initialise_pws_pointer:			; Set Pointer to Work Space (AWS/PWS).
-
-	ldx		_Xreg					; Get ROM No
-	lda		_paged_rom_ws,x			; Retrieve the PWS page address
-	and		#$7f					; Mask out bit 2^7 (AWS owner)
-	sta 	_pws + 1
-	lda		#$00					; Set pointer to Private workspace
-	sta 	_pws
-
-	rts
-
-; ------------------------------------------------------------------------
-_initialise_stack_pointer:
-;	### BE CAREFUL ### 
-;	Avoid too many function call levels. The depth may corrupt the stack
-;	### BE CAREFUL ### 
-
-; 	Set the 'C' stack pointer to $0e7f (First 128 bytes of AWS)
-	lda		_aws+1						; Use the lower 128 byte of the AWS
-	sta		c_sp+1
-	lda		#$7f						; Use the lower 128 byte of the AWS
-	sta		c_sp
-
-	rts
-
-; ------------------------------------------------------------------------
-; _claim_vectors:						; Claim vectors
-	; ldx		#$0f					; Service Request - Claim Vectors
-	; ldy		#$00					; Argument is null
-	; jmp     _issue_rom_service_call
-
-; ------------------------------------------------------------------------
-; _issue_rom_service_call:
-;									; On Entry:
-;									;	__X__ = Service Call
-;									;	__Y__ = Service Argument
-
-	; jsr		_push_saved_regs		; push previously saved regs & __SP__ to CPU stack. Make service ROM re-entrant
-
-	; lda		#$8f					; Osbyte ROM service Requests
-;	; ldx		#$00					; Service Request   - Preset by calling function
-;	;ldy		#$00					; Service Argument  - Preset by calling function
-	; jsr     OSBYTE      			; Returned value in X(low) Y(High)
-
-	; jsr		_pull_saved_regs		; Restore previous service call register. Service ROM is re-entrant
-	; rts
-
-; ------------------------------------------------------------------------
-_save_regs:							; Save CPU registers to Page zero
-    sta		_Areg
-	stx		_Xreg
-	sty		_Yreg
-	rts
-
-; ------------------------------------------------------------------------
-_restore_regs:						; Restore CPU Registers from Page Zero
+;	Restore CPU registers for service call
 	lda		_Areg
 	ldx		_Xreg
 	ldy		_Yreg
+	
 	rts
 
+
 ; ------------------------------------------------------------------------
-; _push_saved_regs:
-	; sta		tmp4					; Save __A__ reg temporarily
+_issue_rom_service_call:
+;									
+;	On Entry:	;	__X__ = Service Call
+;				;	__Y__ = Service Argument
 
-	; pla								; Adjust return address on CPU stack
-	; sta		ptr1
-	; pla
-	; sta		ptr1+1
+;	push previously saved regs & __SP__ to CPU stack. Makes service ROM re-entrant
 
-	; lda		_Areg
-	; pha
-	; lda		_Xreg
-	; pha
-	; lda		_Yreg
-	; pha
-;	; lda		c_sp						; push C stack pointer to CPU stack
-;	; pha
-;	; lda		c_sp+1
-;	; pha
+	lda		_Areg
+	pha
+	lda		_Xreg
+	pha
+	lda		_Yreg
+	pha
+	
+	lda		#$8f					; Osbyte ROM service Requests
+;	; ldx		#$00					; Service Request   - Preset by calling function
+;	; ldy		#$00					; Service Argument  - Preset by calling function
+	jsr     OSBYTE      			; Returned value in X(low) Y(High)
 
-	; lda		ptr1+1					; push return address back on CPU stack
-	; pha
-	; lda		ptr1
-	; pha
+	pla
+	sta		_Yreg
+	pla
+	sta		_Xreg
+	pla
+	sta		_Areg
 
-	; lda		tmp4					; restore __A__
-	; rts								; Return using the adjusted Stack Address
-
-;------------------------------------------------------------------------
-; _pull_saved_regs:
-	; sta		tmp4					; Save __A__ reg temporarily
-
-	; pla								; Adjust return address on CPU stack
-	; sta		ptr1
-	; pla
-	; sta		ptr1+1
-
-;	; pla
-;	; sta		c_sp+1					; Restore original C stack Pointer
-;	; pla
-;	; sta		c_sp
-
-	; pla
-	; sta		_Yreg
-	; pla
-	; sta		_Xreg
-	; pla
-	; sta		_Areg
-
-	; lda		ptr1+1					; push return address back on CPU stack
-	; pha
-	; lda		ptr1
-	; pha
-
-	; lda		tmp4					; restore __A__
-	; rts								; Return using the adjusted Stack Address
-
+;	Restore previous service call register. Makes Service ROM is re-entrant
+	rts

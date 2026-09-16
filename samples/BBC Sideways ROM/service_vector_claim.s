@@ -10,11 +10,27 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.import		_dbg_print_rom
 	.export		_service_vector_claim
+	.import		_service_routine_pre_call
+	.import		_service_routine_post_call
+	.import		_swr_print_str
+	.import		_swr_print_newline
+	.import		_dbg_print_rom
+
+.segment	"RODATA"
+
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$76,$65,$63,$74,$6F,$72,$5F,$63
+	.byte	$6C,$61,$69,$6D,$3A,$42,$65,$67,$69,$6E,$00
+S000C:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$76,$65,$63,$74,$6F,$72,$5F,$63
+	.byte	$6C,$61,$69,$6D,$3A,$45,$6E,$64,$00
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$76,$65,$63,$74,$6F,$72,$5F,$63
+	.byte	$6C,$61,$69,$6D,$00
 
 ; ---------------------------------------------------------------
-; long __near__ service_vector_claim (unsigned char A, unsigned char X, unsigned char Y)
+; void __near__ service_vector_claim (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -24,37 +40,51 @@
 .segment	"CODE"
 
 ;
-; long service_vector_claim( byte A, byte X, byte Y ) {
+; swr_print_str( "service_vector_claim" );
 ;
-	jsr     pusha
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
 ;
 ; dbg_print_rom();
 ;
 	jsr     _dbg_print_rom
 ;
-; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+; swr_print_str( "service_vector_claim:Begin" );
 ;
-	ldx     #$00
-	lda     (c_sp,x)
-	stx     sreg+1
-	sta     sreg
-	txa
-	jsr     pusheax
-	ldy     #$05
-	lda     (c_sp),y
-	tax
-	lda     #$00
-	jsr     axlong
-	jsr     tosaddeax
-	jsr     pusheax
-	ldy     #$06
-	ldx     #$00
-	lda     (c_sp),y
-	jsr     tosadd0ax
+	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
 ;
-; }
+; swr_print_newline();
 ;
-	jmp     incsp3
+	jsr     _swr_print_newline
+;
+; dbg_print_rom();
+;
+	jsr     _dbg_print_rom
+;
+; service_routine_pre_call();   
+;
+	jsr     _service_routine_pre_call
+;
+; service_routine_post_call();
+;
+	jsr     _service_routine_post_call
+;
+; swr_print_str( "service_vector_claim:End" );
+;
+	lda     #<(S000C)
+	ldx     #>(S000C)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jmp     _swr_print_newline
 
 .endproc
 

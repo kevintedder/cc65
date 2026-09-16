@@ -10,25 +10,133 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.import		_swr_print_str
-	.import		_swr_print_newline
-	.import		_intdec
 	.importzp	_aws
 	.importzp	_Areg
 	.importzp	_OS_Areg
 	.importzp	_OS_Xreg
 	.importzp	_OS_Yreg
+	.export		_service_unknown_osbyte
+	.import		_service_routine_pre_call
+	.import		_service_routine_post_call
+	.import		_swr_print_str
+	.import		_swr_print_newline
+	.import		_intdec
 	.import		_dbg_print_rom
 	.export		_print_osbyte
-	.export		_service_unknown_osbyte
 
 .segment	"RODATA"
 
+S000D:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
+	.byte	$6F,$73,$62,$79,$74,$65,$3A,$42,$65,$67,$69,$6E,$00
+S000E:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
+	.byte	$6F,$73,$62,$79,$74,$65,$3A,$45,$6E,$64,$00
 S000A:
 	.byte	$6F,$73,$62,$79,$74,$65,$20,$00
 S000C:
 	.byte	$2C,$00
 S000B	:=	S000C+0
+
+; ---------------------------------------------------------------
+; void __near__ service_unknown_osbyte (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_service_unknown_osbyte: near
+
+.segment	"CODE"
+
+;
+; swr_print_str( "service_unknown_osbyte:Begin" );
+;
+	lda     #<(S000D)
+	ldx     #>(S000D)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; dbg_print_rom();
+;
+	jsr     _dbg_print_rom
+;
+; service_routine_pre_call();   
+;
+	jsr     _service_routine_pre_call
+;
+; switch ( OS_Areg ) {
+;
+	ldx     #$00
+	lda     _OS_Areg
+;
+; }
+;
+	cmp     #$1A
+	beq     L0004
+	cmp     #$1B
+	beq     L0005
+	cmp     #$1C
+	beq     L0006
+	jmp     L0003
+;
+; print_osbyte();
+;
+L0004:	jsr     _print_osbyte
+;
+; aws->tmp1 = 10;
+;
+	lda     #$0A
+;
+; break;
+;
+	jmp     L000B
+;
+; print_osbyte();
+;
+L0005:	jsr     _print_osbyte
+;
+; aws->tmp1 = 20;
+;
+	lda     #$14
+;
+; break;
+;
+	jmp     L000B
+;
+; print_osbyte();
+;
+L0006:	jsr     _print_osbyte
+;
+; aws->tmp1 = 30;
+;
+	lda     #$1E
+L000B:	ldy     #$00
+	sta     (_aws),y
+;
+; Areg = 0;                       // Prevent further ROMs from processing this cmd
+;
+	ldx     #$00
+	txa
+	sta     _Areg
+;
+; service_routine_post_call();
+;
+L0003:	jsr     _service_routine_post_call
+;
+; swr_print_str( "service_unknown_osbyte:End" );
+;
+	lda     #<(S000E)
+	ldx     #>(S000E)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jmp     _swr_print_newline
+
+.endproc
 
 ; ---------------------------------------------------------------
 ; void __near__ print_osbyte (void)
@@ -108,106 +216,6 @@ L0004:	jsr     _intdec
 ;
 	ldy     #$0C
 	jmp     addysp
-
-.endproc
-
-; ---------------------------------------------------------------
-; long __near__ service_unknown_osbyte (unsigned char A, unsigned char X, unsigned char Y)
-; ---------------------------------------------------------------
-
-.segment	"CODE"
-
-.proc	_service_unknown_osbyte: near
-
-.segment	"CODE"
-
-;
-; long service_unknown_osbyte( byte A, byte X, byte Y ) {
-;
-	jsr     pusha
-;
-; switch ( OS_Areg ) {
-;
-	ldx     #$00
-	lda     _OS_Areg
-;
-; }
-;
-	cmp     #$1A
-	beq     L0004
-	cmp     #$1B
-	beq     L0005
-	cmp     #$1C
-	beq     L0006
-	jmp     L0003
-;
-; print_osbyte();
-;
-L0004:	jsr     _print_osbyte
-;
-; aws->tmp1 = 10;
-;
-	lda     #$0A
-;
-; break;
-;
-	jmp     L000B
-;
-; print_osbyte();
-;
-L0005:	jsr     _print_osbyte
-;
-; aws->tmp1 = 20;
-;
-	lda     #$14
-;
-; break;
-;
-	jmp     L000B
-;
-; print_osbyte();
-;
-L0006:	jsr     _print_osbyte
-;
-; aws->tmp1 = 30;
-;
-	lda     #$1E
-L000B:	ldy     #$80
-	sta     (_aws),y
-;
-; Areg = 0;                       // Prevent further ROMs from processing this cmd
-;
-	ldx     #$00
-	txa
-	sta     _Areg
-;
-; dbg_print_rom();
-;
-L0003:	jsr     _dbg_print_rom
-;
-; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
-;
-	ldx     #$00
-	lda     (c_sp,x)
-	stx     sreg+1
-	sta     sreg
-	txa
-	jsr     pusheax
-	ldy     #$05
-	lda     (c_sp),y
-	tax
-	lda     #$00
-	jsr     axlong
-	jsr     tosaddeax
-	jsr     pusheax
-	ldy     #$06
-	ldx     #$00
-	lda     (c_sp),y
-	jsr     tosadd0ax
-;
-; }
-;
-	jmp     incsp3
 
 .endproc
 

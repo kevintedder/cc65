@@ -32,8 +32,8 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbc/types.h>
 
@@ -41,17 +41,96 @@
 //  ### THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out ###
 //  ################################################################################
 
-void dbg_print_byte( byte value) {
-    char buf[13];
-    swr_print_str("0x");
-    swr_print_str( inthex( value, buf ) );
+const char nibble[] = "0123456789ABCDEF";
 
+#pragma optimize (off)
+
+void dbg_print_header() {
+	
+	asm("pha");
+	asm("lda	#'&'");				// Print BBC Hex char
+	asm("jsr	OSWRCH");
+	// asm("lda	#'0'");
+	// asm("jsr	OSWRCH");
+	// asm("lda	#'x'");
+	// asm("jsr	OSWRCH");
+	asm("pla");
 }
-void dbg_print_word( word value) {
-    char buf[13];
-    swr_print_str("0x");
-    swr_print_str( inthex( value, buf ) );
+void dbg_print_tailer() {
+	asm("pha");
+	asm("lda		#' '");
+	asm("jsr		OSWRCH");
+	asm("pla");
 }
+
+void dbg_print_nibble() {
+
+//	On entry:    	A	=	Nibble Value
+
+	asm("tax");
+	asm("lda	_nibble,x");
+	asm("jsr	OSWRCH");
+}
+
+void dbg_byte() {
+	
+//	On entry:    	A	=	Byte Value
+
+	asm("pha");
+	asm("lsr		a");
+	asm("lsr		a");
+	asm("lsr		a");
+	asm("lsr		a");
+	asm("jsr		_dbg_print_nibble");
+	asm("pla");
+	asm("and		#$0f");
+	asm("jsr		_dbg_print_nibble");
+}
+
+void dbg_print_byte( byte value ) {
+
+//	On entry:    	A = Byte value,  is also on C stack
+
+	asm("jsr		_dbg_print_header");
+	asm("jsr		_dbg_byte");
+	asm("jsr		_dbg_print_tailer");
+}
+
+
+void dbg_print_word( unsigned int value ) {
+
+//	On entry:    	AX = Word Value,  is also on C stack
+	
+	asm("pha");
+	asm("jsr		_dbg_print_header");
+	asm("txa");
+	asm("jsr		_dbg_byte");
+	asm("pla");
+	asm("jsr		_dbg_byte");
+	asm("jsr		_dbg_print_tailer");
+}
+
+void dbg_print_long( unsigned long value ) {
+	
+//	On entry:    	EAX	=	Long Value
+	
+	asm("pha");
+	asm("txa");
+	asm("pha");
+	asm("jsr		_dbg_print_header");
+	asm("lda		sreg+1");
+	asm("jsr		_dbg_byte");			// sreg+1
+	asm("lda		sreg");
+	asm("jsr		_dbg_byte");			// sreg
+	asm("pla");
+	asm("jsr		_dbg_byte");			// X reg
+	asm("pla");
+	asm("jsr		_dbg_byte");			// A reg
+	asm("jsr		_dbg_print_tailer");
+}
+
+#pragma optimize (on)
+
 void dbg_print_osbyte_registers(){
     swr_print_str( " os_A:");
     dbg_print_byte( OS_Areg );
@@ -63,39 +142,40 @@ void dbg_print_osbyte_registers(){
 void dbg_print_cpu_registers() {
     swr_print_str( "A:");
     dbg_print_byte( Areg);
-    swr_print_str( " X:");
+    swr_print_str( "X:");
     dbg_print_byte( Xreg);
-    swr_print_str( " Y:");
+    swr_print_str( "Y:");
     dbg_print_byte( Yreg);
 }
 void dbg_print_workspace() {
-    swr_print_str( " AWS:" );
+    swr_print_str( "AWS:" );
     dbg_print_word( (word) aws );
-    swr_print_str( " PWS:" );
+    swr_print_str( "PWS:" );
     dbg_print_word( (word) pws );
 }
 
 void dbg_print_rom() {
-	// swr_print_str( SERVICE_NAME );
-	// dbg_print_byte( Areg );
-    // swr_print_newline();
     dbg_print_cpu_registers();
     dbg_print_workspace();
     swr_print_newline();
+    // swr_print_newline();
 }
 
-long dbg_print_reg( byte A, byte X, byte Y ) {
-	swr_print_str( "a:");
-	dbg_print_byte( A );
-	swr_print_str( " x:");
-	dbg_print_byte( X );
-	swr_print_str( " y:");
-	dbg_print_byte( Y );
-    swr_print_newline();
+// void dbg_print_reg() {
+	// swr_print_str( "a:");
+	// dbg_print_byte( A );
+	// swr_print_str( "x:");
+	// dbg_print_byte( X );
+	// swr_print_str( "y:");
+	// dbg_print_byte( Y );
+    // swr_print_newline();
 	
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
+	// aws->eax.a = A;
+	// aws->eax.x = X;
+	// aws->eax.y = Y;
+	// return aws->eax;	// Return the values of A, X, Y
 
-}
+// }
 
 /*
 

@@ -10,26 +10,31 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
+	.importzp	_Areg
+	.importzp	_Yreg
+	.importzp	_cmd_ptr
+	.import		_SWR_Title
+	.export		_service_help
+	.import		_service_routine_pre_call
+	.import		_print_rom_title
+	.import		_strcmp_cr
 	.import		_swr_print_str
 	.import		_swr_print_newline
 	.import		_swr_print_space
-	.importzp	_cmd_ptr
-	.import		_SWR_Title
-	.import		_print_rom_title
-	.import		_strcmp_cr
 	.import		_dbg_print_rom
 	.import		_commands
-	.export		_eax
-	.export		_service_help
-	.export		_test
 
-.segment	"BSS"
+.segment	"RODATA"
 
-_eax:
-	.res	4,$00
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$68,$65,$6C,$70,$3A,$42,$65,$67
+	.byte	$69,$6E,$00
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$68,$65,$6C,$70,$3A,$45,$6E,$64
+	.byte	$00
 
 ; ---------------------------------------------------------------
-; struct _eax __near__ service_help (unsigned char A, unsigned char X, unsigned char Y)
+; void __near__ service_help (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -39,27 +44,36 @@ _eax:
 .segment	"CODE"
 
 ;
-; struct _eax service_help( byte A, byte X, byte Y ) {
+; swr_print_str( "service_help:Begin" );
 ;
-	jsr     pusha
+	jsr     decsp3
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
 ;
 ; dbg_print_rom();
 ;
-	jsr     decsp3
 	jsr     _dbg_print_rom
 ;
-; help_cmd = &cmd_ptr[Y];       // cmd pointers to the start of the command string
+; service_routine_pre_call(); 
 ;
-	ldy     #$03
-	lda     (c_sp),y
-	clc
-	adc     _cmd_ptr
+	jsr     _service_routine_pre_call
+;
+; help_cmd = &cmd_ptr[Yreg];       // cmd pointers to the start of the command string
+;
+	lda     _cmd_ptr
 	ldx     _cmd_ptr+1
+	clc
+	adc     _Yreg
 	bcc     L000B
 	inx
 L000B:	jsr     stax0sp
 ;
-; if ( help_cmd[0] == 0x0d ) {     // No command supplied
+; if ( help_cmd[0] == 0x0d ) {      // No command supplied
 ;
 	sta     ptr1
 	stx     ptr1+1
@@ -104,13 +118,12 @@ L0002:	jsr     pushw0sp
 	lda     #$00
 	ldy     #$02
 L000C:	sta     (c_sp),y
-	ldx     #$00
-	lda     (c_sp),y
 	cmp     #$05
 	bcs     L000D
 ;
 ; swr_print_space(1);
 ;
+	ldx     #$00
 	lda     #$01
 	jsr     _swr_print_space
 ;
@@ -168,76 +181,24 @@ L000A:	jsr     _swr_print_str
 	adc     (c_sp),y
 	jmp     L000C
 ;
-; A = 0;         // Prevent further ROMs from processing this cmd
+; Areg = 0;         // Prevent further ROMs from processing this cmd
 ;
-L000D:	txa
-	ldy     #$05
-	sta     (c_sp),y
+L000D:	lda     #$00
+	sta     _Areg
 ;
-; dbg_print_rom();
+; swr_print_str( "service_help:End" );
 ;
-L0004:	jsr     _dbg_print_rom
+L0004:	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
 ;
-; eax.a = A;
+; swr_print_newline();
 ;
-	ldy     #$05
-	lda     (c_sp),y
-	sta     _eax
-;
-; eax.x = X;
-;
-	dey
-	lda     (c_sp),y
-	sta     _eax+1
-;
-; eax.y = Y;
-;
-	dey
-	lda     (c_sp),y
-	sta     _eax+2
-;
-; return eax;
-;
-	lda     _eax+3
-	sta     sreg+1
-	lda     _eax+2
-	sta     sreg
-	ldx     _eax+1
-	lda     _eax
+	jsr     _swr_print_newline
 ;
 ; }
 ;
-	jmp     incsp6
-
-.endproc
-
-; ---------------------------------------------------------------
-; void __near__ test (void)
-; ---------------------------------------------------------------
-
-.segment	"CODE"
-
-.proc	_test: near
-
-.segment	"CODE"
-
-;
-; t = service_help(1,2,3);
-;
-	jsr     decsp6
-	lda     #$01
-	tay
-	sta     (c_sp),y
-	lda     #$02
-	dey
-	sta     (c_sp),y
-	lda     #$03
-	jsr     _service_help
-	jsr     steax0sp
-;
-; }
-;
-	jmp     incsp4
+	jmp     incsp3
 
 .endproc
 

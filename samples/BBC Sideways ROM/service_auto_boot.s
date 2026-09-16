@@ -10,13 +10,25 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.import		_swr_print_newline
-	.import		_print_rom_title
-	.import		_dbg_print_rom
 	.export		_service_auto_boot
+	.import		_service_routine_pre_call
+	.import		_service_routine_post_call
+	.import		_print_rom_title
+	.import		_swr_print_str
+	.import		_swr_print_newline
+	.import		_dbg_print_rom
+
+.segment	"RODATA"
+
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$61,$75,$74,$6F,$5F,$62,$6F,$6F
+	.byte	$74,$3A,$42,$65,$67,$69,$6E,$00
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$61,$75,$74,$6F,$5F,$62,$6F,$6F
+	.byte	$74,$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
-; long __near__ service_auto_boot (unsigned char A, unsigned char X, unsigned char Y)
+; void __near__ service_auto_boot (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -26,13 +38,11 @@
 .segment	"CODE"
 
 ;
-; long service_auto_boot( byte A, byte X, byte Y ) {
+; swr_print_str( "service_auto_boot:Begin" );
 ;
-	jsr     pusha
-;
-; print_rom_title();
-;
-	jsr     _print_rom_title
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
 ;
 ; swr_print_newline();
 ;
@@ -42,29 +52,31 @@
 ;
 	jsr     _dbg_print_rom
 ;
-; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+; service_routine_pre_call();   
 ;
-	ldx     #$00
-	lda     (c_sp,x)
-	stx     sreg+1
-	sta     sreg
-	txa
-	jsr     pusheax
-	ldy     #$05
-	lda     (c_sp),y
-	tax
-	lda     #$00
-	jsr     axlong
-	jsr     tosaddeax
-	jsr     pusheax
-	ldy     #$06
-	ldx     #$00
-	lda     (c_sp),y
-	jsr     tosadd0ax
+	jsr     _service_routine_pre_call
 ;
-; }
+; print_rom_title();
 ;
-	jmp     incsp3
+	jsr     _print_rom_title
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; service_routine_post_call();
+;
+	jsr     _service_routine_post_call
+;
+; swr_print_str( "service_auto_boot:End" );
+;
+	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jmp     _swr_print_newline
 
 .endproc
 

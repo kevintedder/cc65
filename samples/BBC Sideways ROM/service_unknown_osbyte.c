@@ -34,14 +34,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
 void print_osbyte() {
 	char buf[12];
-	
 	swr_print_str( "osbyte " );
 	swr_print_str( intdec( OS_Areg, buf ) );
 	swr_print_str( "," );
@@ -51,18 +50,21 @@ void print_osbyte() {
 	swr_print_newline();
 }
 
-long service_unknown_osbyte( byte A, byte X, byte Y ) {
+void service_unknown_osbyte() {
 
-    // swr_print_str( "unknown_osbyte " );
-    // swr_print_newline();
-    // dbg_print_cpu_registers();
-    // dbg_print_osbyte_registers();
+#ifdef SWR_DEBUG
+	swr_print_str( "service_unknown_osbyte:Begin" );
+	swr_print_newline();
+	dbg_print_rom();
+#endif
+
+	service_routine_pre_call();			
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
 
-
+	
 	switch ( OS_Areg ) {
 		
 		case 26:
@@ -90,11 +92,12 @@ long service_unknown_osbyte( byte A, byte X, byte Y ) {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
+	service_routine_post_call();
+
 #ifdef SWR_DEBUG
-	dbg_print_rom();
+	swr_print_str( "service_unknown_osbyte:End" );
+	swr_print_newline();
 #endif
 
-	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }
 

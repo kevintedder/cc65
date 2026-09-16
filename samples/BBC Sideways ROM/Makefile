@@ -30,7 +30,8 @@ LD65		= $(CC65_BIN)\ld65
 #--------------------------------------------------------------------------
 # flags
 
-CWARN	= -W unused-label,unused-param,unused-var
+CWARN	= 
+#CWARN	= -W unused-label,unused-param,unused-var
 
 ASFLAGS		?= -g --include-dir .
 CFLAGS		?= -Osir -T -t $(TARGET) $(CWARN)
@@ -42,13 +43,13 @@ BINARY	=	swr.rom
 
 LIBRARY	=	$(CC65_LIB)\bbcswr.lib
 
-BEEBMEM_LIB = C:\Users\kevin\Documents\BeebEm\\BeebFile
+BEEBMEM_LIB = C:\Users\kevin\Documents\BeebEm\BeebFile
 
 ROM_SEED_OBJ =	$(CC65_LIBWRK)\bbcswr\crt0.o
 ROM_SEED_SRC =	$(CC65_LIBSRC)\bbcswr\crt0.s
 
-SERVICES	=	swr.o \
-				swr_cmds.o \
+SERVICES	=	bbcswr.o \
+				bbcswr_cmds.o \
 				service_10hz_poll.o \
 				service_auto_boot.o \
 				service_bell_request.o \

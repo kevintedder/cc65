@@ -34,36 +34,36 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
-#include <bbcswr/swr_cmds.h>
+#include <bbcswr/bbcswr_cmds.h>
 
-struct _eax {
-    byte    a;
-    byte    x;
-    byte    y;
-    byte	padding;
-} eax;
+void service_help() {
 
+//	On entry:   Areg	=	ROM Service Type requested
+//				Xreg	= 	Current ROM Number
+//				Yreg	= 	Any parameter required for the service
 
-struct _eax service_help( byte A, byte X, byte Y ) {
 	byte cmd_idx;
     char* help_cmd;
-
-
+	
 #ifdef SWR_DEBUG
+	swr_print_str( "service_help:Begin" );
+	swr_print_newline();
 	dbg_print_rom();
 #endif
 
+	service_routine_pre_call();	
+	
     // --------------------------------//
     // PLACE YOUR CODE BELOW           //
     // --------------------------------//
+	
+    help_cmd = &cmd_ptr[Yreg];							// cmd pointers to the start of the command string
 
-    help_cmd = &cmd_ptr[Y];							// cmd pointers to the start of the command string
-
-    if ( help_cmd[0] == 0x0d ) {					// No command supplied
+    if ( help_cmd[0] == 0x0d ) {						// No command supplied
 		swr_print_newline();
         print_rom_title();
     }
@@ -82,7 +82,7 @@ struct _eax service_help( byte A, byte X, byte Y ) {
 				swr_print_newline();
 			}
 
-            A = 0;									// Prevent further ROMs from processing this cmd
+            Areg = 0;									// Prevent further ROMs from processing this cmd
         }
 
 	}
@@ -92,22 +92,8 @@ struct _eax service_help( byte A, byte X, byte Y ) {
     // --------------------------------//
 
 #ifdef SWR_DEBUG
-	dbg_print_rom();
+	swr_print_str( "service_help:End" );
+	swr_print_newline();
 #endif
 
-	// t = (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;	// Return the values of A, X, Y
-
-
-	eax.a = A;
-	eax.x = X;
-	eax.y = Y;
-	return eax;
 }
-
-void test(){
-	struct _eax t;
-	
-	t = service_help(1,2,3);
-	
-}
-

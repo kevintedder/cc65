@@ -34,12 +34,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-long service_unknown_status( byte A, byte X, byte Y ) {                  // Do nothing, but allows you to do something
+void service_unknown_status() {                  // Do nothing, but allows you to do something
+
+#ifdef SWR_DEBUG
+	swr_print_str( "service_unknown_status:Begin" );
+	swr_print_newline();
+	dbg_print_rom();
+#endif
+
+	service_routine_pre_call();			
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
@@ -51,12 +59,12 @@ long service_unknown_status( byte A, byte X, byte Y ) {                  // Do n
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-#ifdef SWR_DEBUG
-	dbg_print_rom();
-#endif
+	service_routine_post_call();
 
-	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+#ifdef SWR_DEBUG
+	swr_print_str( "service_unknown_status:End" );
+	swr_print_newline();
+#endif
 
 }
 

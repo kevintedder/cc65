@@ -11,9 +11,32 @@
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.importzp	_aws
+	.importzp	_Areg
+	.importzp	_Xreg
 	.importzp	_Yreg
-	.import		_dbg_print_rom
 	.export		_service_claim_absolute_ws
+	.import		_swr_print_str
+	.import		_swr_print_newline
+	.import		_dbg_print_byte
+	.import		_dbg_print_word
+	.import		_dbg_print_rom
+
+.segment	"RODATA"
+
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$63,$6C,$61,$69,$6D,$5F,$61,$62
+	.byte	$73,$6F,$6C,$75,$74,$65,$5F,$77,$73,$3A,$42,$65,$67,$69,$6E,$00
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$63,$6C,$61,$69,$6D,$5F,$61,$62
+	.byte	$73,$6F,$6C,$75,$74,$65,$5F,$77,$73,$3A,$45,$6E,$64,$00
+S000C:
+	.byte	$61,$77,$73,$3A,$20,$61,$3A,$00
+S000E:
+	.byte	$20,$79,$3A,$00
+S000D:
+	.byte	$20,$78,$3A,$00
+S000F:
+	.byte	$20,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ service_claim_absolute_ws (void)
@@ -26,19 +49,33 @@
 .segment	"CODE"
 
 ;
-; aws = (struct aws *)( 0x0e + ( sizeof(struct aws) / 256 ) );
+; swr_print_str( "service_claim_absolute_ws:Begin" );
+;
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; aws = (struct aws *)( Yreg + ( AWS_SIZE / 256 ) + 1 );
 ;
 	ldx     #$00
-	lda     #$0F
-	sta     _aws
+	lda     _Yreg
+	clc
+	adc     #$01
+	bcc     L0003
+	inx
+L0003:	sta     _aws
 	stx     _aws+1
 ;
 ; if ( (byte)aws > Yreg ) {
 ;
 	lda     _aws
 	cmp     _Yreg
-	bcc     L0002
-	beq     L0002
+	bcc     L0004
+	beq     L0004
 ;
 ; Yreg = (byte)aws;
 ;
@@ -51,13 +88,68 @@
 	sta     _aws
 	stx     _aws+1
 ;
+; swr_print_str( "service_claim_absolute_ws:End" );
+;
+L0004:	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
+; swr_print_str("aws: a:");
+;
+	lda     #<(S000C)
+	ldx     #>(S000C)
+	jsr     _swr_print_str
+;
+; dbg_print_byte( Areg );
+;
+	lda     _Areg
+	jsr     _dbg_print_byte
+;
+; swr_print_str(" x:");
+;
+	lda     #<(S000D)
+	ldx     #>(S000D)
+	jsr     _swr_print_str
+;
+; dbg_print_byte( Xreg );
+;
+	lda     _Xreg
+	jsr     _dbg_print_byte
+;
+; swr_print_str(" y:");
+;
+	lda     #<(S000E)
+	ldx     #>(S000E)
+	jsr     _swr_print_str
+;
+; dbg_print_byte( Yreg );
+;
+	lda     _Yreg
+	jsr     _dbg_print_byte
+;
+; swr_print_str(" ");
+;
+	lda     #<(S000F)
+	ldx     #>(S000F)
+	jsr     _swr_print_str
+;
+; dbg_print_word( (word)aws );
+;
+	lda     _aws
+	ldx     _aws+1
+	jsr     _dbg_print_word
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
+;
 ; dbg_print_rom();
 ;
 	jmp     _dbg_print_rom
-;
-; }
-;
-L0002:	rts
 
 .endproc
 

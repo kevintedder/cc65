@@ -10,11 +10,24 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.import		_dbg_print_rom
 	.export		_service_reset_call
+	.import		_service_routine_pre_call
+	.import		_service_routine_post_call
+	.import		_swr_print_str
+	.import		_swr_print_newline
+	.import		_dbg_print_rom
+
+.segment	"RODATA"
+
+S000A:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$72,$65,$73,$65,$74,$5F,$63,$61
+	.byte	$6C,$6C,$3A,$42,$65,$67,$69,$6E,$00
+S000B:
+	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$72,$65,$73,$65,$74,$5F,$63,$61
+	.byte	$6C,$6C,$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
-; long __near__ service_reset_call (unsigned char A, unsigned char X, unsigned char Y)
+; void __near__ service_reset_call (void)
 ; ---------------------------------------------------------------
 
 .segment	"CODE"
@@ -24,37 +37,37 @@
 .segment	"CODE"
 
 ;
-; long service_reset_call( byte A, byte X, byte Y ) {                  // Do nothing, but allows you to do something
+; swr_print_str( "service_reset_call:Begin" );
 ;
-	jsr     pusha
+	lda     #<(S000A)
+	ldx     #>(S000A)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jsr     _swr_print_newline
 ;
 ; dbg_print_rom();
 ;
 	jsr     _dbg_print_rom
 ;
-; return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
+; service_routine_pre_call();   
 ;
-	ldx     #$00
-	lda     (c_sp,x)
-	stx     sreg+1
-	sta     sreg
-	txa
-	jsr     pusheax
-	ldy     #$05
-	lda     (c_sp),y
-	tax
-	lda     #$00
-	jsr     axlong
-	jsr     tosaddeax
-	jsr     pusheax
-	ldy     #$06
-	ldx     #$00
-	lda     (c_sp),y
-	jsr     tosadd0ax
+	jsr     _service_routine_pre_call
 ;
-; }
+; service_routine_post_call();
 ;
-	jmp     incsp3
+	jsr     _service_routine_post_call
+;
+; swr_print_str( "service_reset_call:End" );
+;
+	lda     #<(S000B)
+	ldx     #>(S000B)
+	jsr     _swr_print_str
+;
+; swr_print_newline();
+;
+	jmp     _swr_print_newline
 
 .endproc
 

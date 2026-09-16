@@ -45,12 +45,15 @@
 //  ################################################################################
 //  ### THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out ###
 //  ################################################################################
-void dbg_print_byte( byte value);
-void dbg_print_word( word value) ;
+void dbg_print_header();
+void dbg_print_nibble();
+void dbg_print_byte(byte value );
+void dbg_print_word( unsigned int value );
+void dbg_print_long( unsigned long value );
 void dbg_print_osbyte_registers();
 void dbg_print_cpu_registers();
 void dbg_print_workspace();
 void dbg_print_rom();
-long dbg_print_reg( byte A, byte X, byte Y );
+long dbg_print_reg();
 
 #endif

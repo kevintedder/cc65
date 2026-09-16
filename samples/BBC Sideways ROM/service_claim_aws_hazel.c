@@ -34,12 +34,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-long service_claim_aws_hazel( byte A, byte X, byte Y ) {                  // Do nothing, but allows you to do something
+void service_claim_aws_hazel() {                  // Do nothing, but allows you to do something
+
+#ifdef SWR_DEBUG
+	swr_print_str( "service_claim_aws_hazel:Begin" );
+	swr_print_newline();
+	dbg_print_rom();
+#endif
+
+	service_routine_pre_call();			
 
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
@@ -51,11 +59,12 @@ long service_claim_aws_hazel( byte A, byte X, byte Y ) {                  // Do 
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
+	service_routine_post_call();
+
 #ifdef SWR_DEBUG
-	dbg_print_rom();
+	swr_print_str( "service_claim_aws_hazel:End" );
+	swr_print_newline();
 #endif
 
-	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }
 

@@ -35,44 +35,73 @@
 #include <string.h>
 
 #include <bbc/osbyte.h>
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
 
-void service_claim_static_ws() {
-	
-//	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
-//					the C stack whilst the ROM initialises PWS
-
-	if ( ( paged_rom_ws[Xreg] & 0x80 ) != 0x0 ) {	// Is this ROM the AWS Owner
-
-		// AWS Owner?  No
-
-		//  Use OS_Areg as a temporary store for Paged ROM setting
-		OS_Areg = paged_rom_ws[Xreg] | 0x80;	// Set Bit 7 = Claim AWS Owner
-		paged_rom_ws[Xreg] = OS_Areg;
-
-		asm("lda	#143");
-		asm("ldx	#10");
-		asm("ldy	#0");
-		asm("jsr 	$fffe");
-		
-		paged_rom_ws[Xreg] = OS_Areg;
-	}
-
-	// AWS Owner?  Yes
-
+void service_release_static_ws() {
 
 #ifdef SWR_DEBUG
+	swr_print_str( "service_release_static_ws:Begin" );
+	swr_print_newline();
 	dbg_print_rom();
+#endif
+
+	paged_rom_ws[Xreg] = paged_rom_ws[Xreg] & 0x7f;					// Clear Bit 7 = Release AWS Ownership
+	// paged_rom_ws[Xreg] = ws;
+
+#ifdef SWR_DEBUG
+	swr_print_str( "service_release_static_ws:End" );
+	swr_print_newline();
 #endif
 
 }
 
-void service_release_static_ws() {
-	OS_Areg = paged_rom_ws[Xreg] & 0x7f;	// Set Bit 7 = Claim AWS Owner
-	paged_rom_ws[Xreg] = OS_Areg;
+
+void claim_static_aws() {
+
+//	On entry:   Areg	=	ROM Service Type requested
+//				Xreg	= 	Current ROM Number
+//				Yreg	= 	Any parameter required for the service
+
+#ifdef SWR_DEBUG
+	swr_print_str( "claim_static_aws:Begin" );
+	swr_print_newline();
+	dbg_print_rom();
+#endif
+
+//	DO NOT CHANGE - No local variables declared.  This code is written so as not to use 
+//					the C stack whilst the ROM initialises AWS
+
+	if ( ( paged_rom_ws[Xreg] & 0x80 ) == 0x0 ) {	// Is this ROM the AWS Owner?
+
+		// AWS Owner?  No
+		
+#ifdef SWR_DEBUG
+		swr_print_str( "Issue ROM service:Begin" );
+		swr_print_newline();
+#endif
+
+		asm("ldx	#$0a");							// Service call - Claim Static AWS
+		asm("ldy	#0");
+		asm("jsr 	_issue_rom_service_call");
+
+#ifdef SWR_DEBUG
+		swr_print_str( "Issue ROM service:End" );
+		swr_print_newline();
+#endif
+		
+		paged_rom_ws[Xreg] = paged_rom_ws[Xreg] | 0x80;				// Set Bit 7 = Claim AWS Ownership
+
+	}
+
+	// AWS Owner?  Yes - already 
+
+#ifdef SWR_DEBUG
+	swr_print_str( "claim_static_aws:End" );
+	swr_print_newline();
+#endif
 
 }

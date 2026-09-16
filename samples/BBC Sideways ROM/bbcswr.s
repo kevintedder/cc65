@@ -10,12 +10,12 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
-	.import		_swr_print_str
-	.import		_swr_print_newline
-	.import		_swr_print_space
 	.import		_SWR_Title
 	.import		_SWR_Version
 	.export		_print_rom_title
+	.import		_swr_print_str
+	.import		_swr_print_newline
+	.import		_swr_print_space
 
 ; ---------------------------------------------------------------
 ; void __near__ print_rom_title (void)

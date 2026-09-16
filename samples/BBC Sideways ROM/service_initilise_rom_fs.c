@@ -34,16 +34,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <bbcswr/swr_print_lite.h>
-#include <bbcswr/swr.h>
+
+#include <bbcswr/bbcswr.h>
 #include <bbcswr/swr_debug.h>
 #include <bbcswr/types.h>
 
-long service_initilise_rom_fs( byte A, byte X, byte Y ) {
-    // swr_print_str( "initilise_rom_fs " );
-    // print_newline();
-    // print_cpu_registers();
+void service_initilise_rom_fs() {
 
+#ifdef SWR_DEBUG
+	swr_print_str( "service_initilise_rom_fs:Begin" );
+	swr_print_newline();
+	dbg_print_rom();
+#endif
+
+	service_routine_pre_call();	
+	
     // --------------------------------//
     // PLACE YOUR CODE HERE            //
     // --------------------------------//
@@ -54,10 +59,11 @@ long service_initilise_rom_fs( byte A, byte X, byte Y ) {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
+	service_routine_post_call();
+
 #ifdef SWR_DEBUG
-	dbg_print_rom();
+	swr_print_str( "service_initilise_rom_fs:End" );
+	swr_print_newline();
 #endif
 
-	// Return the values of A, X, Y as a single Long value ( 0x00, Y, X, A )
-	return  (long)( (long)Y << 16 )  + ( (int)X << 8 ) + A;
 }

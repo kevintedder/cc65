@@ -57,5 +57,25 @@ void service_font_explosion();
 void service_filesystem_init();
 void service_tube_post_init();
 void service_tube_main_init();
+void service_char_in_rs232_buffer();
+void service_char_in_print_buffer();
+void service_10hz_poll();
+void service_bell_request();
+void service_sound_buffer_purged();
+void service_interactive_help();
+void service_claim_aws_hazel();
+void service_claim_aws_hazel();
+void service_claim_pws_hazel();
+void service_top_aws_hazel();
+void service_request_pws_hazel();
+void service_return_filesys_info();
+void service_shut_issued();
+void service_reset_call();
+void service_unknown_conf_cmd();
+void service_unknown_status();
+void service_language_init();
+void service_swram_size();
+void service_joystick();
+
 
 #endif

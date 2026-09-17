@@ -36,7 +36,7 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 #define AWS_SIZE  sizeof(struct aws) // include code to claim Absolute workspace if size > 0
@@ -56,7 +56,7 @@ void service_claim_absolute_ws() {
 //				Xreg	= 	Current ROM Number
 //				Yreg	= 	Any parameter required for the service
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_claim_absolute_ws:Begin" );
 	swr_print_newline();
 #endif
@@ -76,7 +76,7 @@ void service_claim_absolute_ws() {
 
 	}
 	
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_claim_absolute_ws:End" );
 	swr_print_newline();
 

@@ -53,7 +53,7 @@
 .proc	_swr_print_newline: near
 
 ; ---------------------------------------------------------------
-; Print a string terminated by <CR>
+; Print a <CR>
 ; ---------------------------------------------------------------
 	jmp		OSNEWL
 
@@ -66,7 +66,7 @@
 .proc	_swr_print_space: near
 
 ; ---------------------------------------------------------------
-; Print a string terminated by <CR>
+; Print a <SPACE>
 ; ---------------------------------------------------------------
 	lda		#' '
 	jmp		OSWRCH

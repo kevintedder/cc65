@@ -37,22 +37,25 @@
 #include <bbc/osbyte.h>
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 
 void service_release_static_ws() {
 
-#ifdef SWR_DEBUG
+//	On entry:   Areg	=	ROM Service Type requested
+//				Xreg	= 	Current ROM Number
+//				Yreg	= 	Any parameter required for the service
+
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_release_static_ws:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
 #endif
 
-	paged_rom_ws[Xreg] = paged_rom_ws[Xreg] & 0x7f;					// Clear Bit 7 = Release AWS Ownership
-	// paged_rom_ws[Xreg] = ws;
+	paged_rom_ws[Xreg] = paged_rom_ws[Xreg] & 0x7f;			// Clear Bit 7 = Release AWS Ownership
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_release_static_ws:End" );
 	swr_print_newline();
 #endif
@@ -66,7 +69,7 @@ void claim_static_aws() {
 //				Xreg	= 	Current ROM Number
 //				Yreg	= 	Any parameter required for the service
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "claim_static_aws:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
@@ -79,27 +82,27 @@ void claim_static_aws() {
 
 		// AWS Owner?  No
 		
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 		swr_print_str( "Issue ROM service:Begin" );
 		swr_print_newline();
 #endif
 
-		asm("ldx	#$0a");							// Service call - Claim Static AWS
+		asm("ldx	#$0a");									// Service call - Claim Static AWS
 		asm("ldy	#0");
 		asm("jsr 	_issue_rom_service_call");
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 		swr_print_str( "Issue ROM service:End" );
 		swr_print_newline();
 #endif
 		
-		paged_rom_ws[Xreg] = paged_rom_ws[Xreg] | 0x80;				// Set Bit 7 = Claim AWS Ownership
+		paged_rom_ws[Xreg] = paged_rom_ws[Xreg] | 0x80;		// Set Bit 7 = Claim AWS Ownership
 
 	}
 
 	// AWS Owner?  Yes - already 
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "claim_static_aws:End" );
 	swr_print_newline();
 #endif

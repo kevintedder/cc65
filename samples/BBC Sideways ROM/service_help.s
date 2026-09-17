@@ -16,22 +16,13 @@
 	.import		_SWR_Title
 	.export		_service_help
 	.import		_service_routine_pre_call
+	.import		_service_routine_post_call
 	.import		_print_rom_title
 	.import		_strcmp_cr
 	.import		_swr_print_str
 	.import		_swr_print_newline
 	.import		_swr_print_space
-	.import		_dbg_print_rom
 	.import		_commands
-
-.segment	"RODATA"
-
-S000A:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$68,$65,$6C,$70,$3A,$42,$65,$67
-	.byte	$69,$6E,$00
-S000B:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$68,$65,$6C,$70,$3A,$45,$6E,$64
-	.byte	$00
 
 ; ---------------------------------------------------------------
 ; void __near__ service_help (void)
@@ -44,23 +35,9 @@ S000B:
 .segment	"CODE"
 
 ;
-; swr_print_str( "service_help:Begin" );
-;
-	jsr     decsp3
-	lda     #<(S000A)
-	ldx     #>(S000A)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
-;
 ; service_routine_pre_call(); 
 ;
+	jsr     decsp3
 	jsr     _service_routine_pre_call
 ;
 ; help_cmd = &cmd_ptr[Yreg];       // cmd pointers to the start of the command string
@@ -118,12 +95,13 @@ L0002:	jsr     pushw0sp
 	lda     #$00
 	ldy     #$02
 L000C:	sta     (c_sp),y
+	ldx     #$00
+	lda     (c_sp),y
 	cmp     #$05
 	bcs     L000D
 ;
 ; swr_print_space(1);
 ;
-	ldx     #$00
 	lda     #$01
 	jsr     _swr_print_space
 ;
@@ -183,18 +161,12 @@ L000A:	jsr     _swr_print_str
 ;
 ; Areg = 0;         // Prevent further ROMs from processing this cmd
 ;
-L000D:	lda     #$00
+L000D:	txa
 	sta     _Areg
 ;
-; swr_print_str( "service_help:End" );
+; service_routine_post_call();
 ;
-L0004:	lda     #<(S000B)
-	ldx     #>(S000B)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
+L0004:	jsr     _service_routine_post_call
 ;
 ; }
 ;

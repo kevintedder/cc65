@@ -47,7 +47,7 @@
 
 #include <bbcswr/bbcswr.h>
 #include <bbcswr/bbcswr_cmds.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbc/types.h>
 
 void func1() {

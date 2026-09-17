@@ -32,8 +32,8 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#ifndef SWR_H
-#define SWR_H
+#ifndef BBCSWR_H
+#define BBCSWR_H
 
 #include <bbc/types.h>
 

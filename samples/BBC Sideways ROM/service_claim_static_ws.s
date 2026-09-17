@@ -13,31 +13,7 @@
 	.importzp	_Xreg
 	.import		_paged_rom_ws
 	.export		_claim_static_aws
-	.import		_swr_print_str
-	.import		_swr_print_newline
-	.import		_dbg_print_rom
 	.export		_service_release_static_ws
-
-.segment	"RODATA"
-
-S000A:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$72,$65,$6C,$65,$61,$73,$65,$5F
-	.byte	$73,$74,$61,$74,$69,$63,$5F,$77,$73,$3A,$42,$65,$67,$69,$6E,$00
-S000B:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$72,$65,$6C,$65,$61,$73,$65,$5F
-	.byte	$73,$74,$61,$74,$69,$63,$5F,$77,$73,$3A,$45,$6E,$64,$00
-S000D:
-	.byte	$49,$73,$73,$75,$65,$20,$52,$4F,$4D,$20,$73,$65,$72,$76,$69,$63
-	.byte	$65,$3A,$42,$65,$67,$69,$6E,$00
-S000C:
-	.byte	$63,$6C,$61,$69,$6D,$5F,$73,$74,$61,$74,$69,$63,$5F,$61,$77,$73
-	.byte	$3A,$42,$65,$67,$69,$6E,$00
-S0011:
-	.byte	$49,$73,$73,$75,$65,$20,$52,$4F,$4D,$20,$73,$65,$72,$76,$69,$63
-	.byte	$65,$3A,$45,$6E,$64,$00
-S0012:
-	.byte	$63,$6C,$61,$69,$6D,$5F,$73,$74,$61,$74,$69,$63,$5F,$61,$77,$73
-	.byte	$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ claim_static_aws (void)
@@ -50,20 +26,6 @@ S0012:
 .segment	"CODE"
 
 ;
-; swr_print_str( "claim_static_aws:Begin" );
-;
-	lda     #<(S000C)
-	ldx     #>(S000C)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
-;
 ; if ( ( paged_rom_ws[Xreg] & 0x80 ) == 0x0 ) { // Is this ROM the AWS Owner?
 ;
 	ldy     _Xreg
@@ -71,17 +33,7 @@ S0012:
 	and     #$80
 	bne     L0002
 ;
-; swr_print_str( "Issue ROM service:Begin" );
-;
-	lda     #<(S000D)
-	ldx     #>(S000D)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; asm("ldx #$0a");       // Service call - Claim Static AWS
+; asm("ldx #$0a");         // Service call - Claim Static AWS
 ;
 	ldx     #$0a
 ;
@@ -89,17 +41,7 @@ S0012:
 ;
 	jsr     _issue_rom_service_call
 ;
-; swr_print_str( "Issue ROM service:End" );
-;
-	lda     #<(S0011)
-	ldx     #>(S0011)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; paged_rom_ws[Xreg] = paged_rom_ws[Xreg] | 0x80;    // Set Bit 7 = Claim AWS Ownership
+; paged_rom_ws[Xreg] = paged_rom_ws[Xreg] | 0x80;  // Set Bit 7 = Claim AWS Ownership
 ;
 	lda     #<(_paged_rom_ws)
 	ldx     #>(_paged_rom_ws)
@@ -115,15 +57,9 @@ L0005:	sta     ptr1
 	ldy     #$00
 	sta     (ptr1),y
 ;
-; swr_print_str( "claim_static_aws:End" );
+; }
 ;
-L0002:	lda     #<(S0012)
-	ldx     #>(S0012)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jmp     _swr_print_newline
+L0002:	rts
 
 .endproc
 
@@ -138,21 +74,7 @@ L0002:	lda     #<(S0012)
 .segment	"CODE"
 
 ;
-; swr_print_str( "service_release_static_ws:Begin" );
-;
-	lda     #<(S000A)
-	ldx     #>(S000A)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
-;
-; paged_rom_ws[Xreg] = paged_rom_ws[Xreg] & 0x7f;     // Clear Bit 7 = Release AWS Ownership
+; paged_rom_ws[Xreg] = paged_rom_ws[Xreg] & 0x7f;   // Clear Bit 7 = Release AWS Ownership
 ;
 	lda     #<(_paged_rom_ws)
 	ldx     #>(_paged_rom_ws)
@@ -168,15 +90,9 @@ L0002:	sta     ptr1
 	ldy     #$00
 	sta     (ptr1),y
 ;
-; swr_print_str( "service_release_static_ws:End" );
+; }
 ;
-	lda     #<(S000B)
-	ldx     #>(S000B)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jmp     _swr_print_newline
+	rts
 
 .endproc
 

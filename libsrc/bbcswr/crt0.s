@@ -34,7 +34,7 @@
 ; /*****************************************************************************/
 
 	.include	"bbc/os.inc"
-	.include	"bbcswr/swr.inc"	; This includes a Dummy ROM Title, override with new file in SAMPLES/BBCSWR
+	.include	"bbcswr/bbcswr.inc"	; This includes a Dummy ROM Title, override with new file in SAMPLES/BBCSWR
 
 	.importzp	c_sp, sreg, regsave
 	.importzp	ptr1, ptr2, ptr3, ptr4
@@ -42,8 +42,8 @@
     .importzp	regbank
 
 	.export		_paged_rom_ws
-	.globalzp	_aws, _pws
-	.globalzp	_Areg, _Xreg, _Yreg
+	.exportzp	_aws, _pws
+	.exportzp	_Areg, _Xreg, _Yreg
 	.exportzp	_OS_Areg, _OS_Xreg, _OS_Yreg, _cmd_ptr
 
 	.import		decsp2, decsp4, incsp2, incsp4
@@ -90,6 +90,7 @@
 	.import		_service_joystick
 
 	.import		_claim_static_aws
+	.import		_restore_regs
 	
 	.import		_dbg_print_header
 	.import		_dbg_print_nibble
@@ -103,7 +104,7 @@
 	.import		_dbg_print_reg
 	
 
-	.import		_osbyte
+	; .import		_osbyte
 	.import		OSWRCH
 	.import		OSNEWL
 	
@@ -111,9 +112,6 @@
 	.export		__STARTUP__ : absolute = 1        ; Mark as startup
 	.export		_SWR_Title, _SWR_Version
 
-	.export		_service_routine_pre_call		
-	.export		_service_routine_post_call
-	.export		_issue_rom_service_call
 	
 ; ------------------------------------------------------------------------
 ; BBC Sideways ROM runtime
@@ -410,93 +408,3 @@ _service255:
 _service_unknown:					; ROM Service call not identified
 	rts
 
-; ------------------------------------------------------------------------
-_service_routine_pre_call:			
-;	This routine go hand-in-hand with '_service_routine_post_call'.
-;	Setup the CC65 'C' environment and prepare the A,X,Y parameter
-;	on the C stack.
-
-;	On entry:   _Areg	=	ROM Service Type requested
-;				_Xreg	= 	Current ROM Number
-;				_Yreg	= 	Any parameter required for the service
-
-;	Claim AWS for this service call - all other ROMs shall release it
-	jsr		_claim_static_aws
-
-;	Prepare AWS pointer
- 	lda		#$0e					; Set pointer to Absolute workspace
- 	sta		_aws+1
- 	lda		#$00
- 	sta		_aws
-
-; 	Prepare PWS pointer
-	ldx		_Xreg					; Get ROM No
-	lda		_paged_rom_ws,x			; Retrieve the PWS page address
-	and		#$7f					; Mask out bit 2^7 (AWS owner)
-	sta 	_pws + 1				; Set pointer to Private workspace
-	lda		#$00
-	sta 	_pws
-
-;	Prepare C Stack pointer from PWS
-	ldy		#$80						; Offset to PWS->c_stack_ptr
-	lda		(_pws),y					; Load from PWS
-	sta		c_sp						; Low Byte of C Stack
-	lda		_pws+1
-	sta		c_sp+1						; High Byte of C Stack
-
-	rts								; Return - Next instruction will be JSR to service
-
-
-; ------------------------------------------------------------------------
-_service_routine_post_call:
-;	Tidy up after calling service routine and restore regs __A__, __X__, __Y__
-;	with the returned value from the called service in EAX (as a long).
-
-;	On entry:   _Areg	=	ROM Service Type requested
-;				_Xreg	= 	Current ROM Number
-;				_Yreg	= 	Any parameter required for the service
-
-;	Save C-Stack pointer to this ROMs PWS
-	lda		c_sp						; Lower Byte of C Stack
-	ldy		#$80						; Offset to PWS->c_stack_ptr
-	sta		(_pws),y					; Save in PWS->c_stack_ptr
-
-_restore_regs:
-
-;	Restore CPU registers for service call
-	lda		_Areg
-	ldx		_Xreg
-	ldy		_Yreg
-	
-	rts
-
-
-; ------------------------------------------------------------------------
-_issue_rom_service_call:
-;									
-;	On Entry:	;	__X__ = Service Call
-;				;	__Y__ = Service Argument
-
-;	push previously saved regs & __SP__ to CPU stack. Makes service ROM re-entrant
-
-	lda		_Areg
-	pha
-	lda		_Xreg
-	pha
-	lda		_Yreg
-	pha
-	
-	lda		#$8f					; Osbyte ROM service Requests
-;	; ldx		#$00					; Service Request   - Preset by calling function
-;	; ldy		#$00					; Service Argument  - Preset by calling function
-	jsr     OSBYTE      			; Returned value in X(low) Y(High)
-
-	pla
-	sta		_Yreg
-	pla
-	sta		_Xreg
-	pla
-	sta		_Areg
-
-;	Restore previous service call register. Makes Service ROM is re-entrant
-	rts

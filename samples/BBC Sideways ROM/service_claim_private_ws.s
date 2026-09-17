@@ -11,33 +11,10 @@
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.importzp	_pws
-	.importzp	_Areg
 	.importzp	_Xreg
 	.importzp	_Yreg
 	.import		_paged_rom_ws
 	.export		_service_claim_private_ws
-	.import		_swr_print_str
-	.import		_swr_print_newline
-	.import		_dbg_print_byte
-	.import		_dbg_print_word
-	.import		_dbg_print_rom
-
-.segment	"RODATA"
-
-S000A:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$63,$6C,$61,$69,$6D,$5F,$70,$72
-	.byte	$69,$76,$61,$74,$65,$5F,$77,$73,$3A,$42,$65,$67,$69,$6E,$00
-S000E:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$63,$6C,$61,$69,$6D,$5F,$70,$72
-	.byte	$69,$76,$61,$74,$65,$5F,$77,$73,$3A,$45,$6E,$64,$00
-S000F:
-	.byte	$70,$77,$73,$3A,$20,$61,$3A,$00
-S0011:
-	.byte	$20,$79,$3A,$00
-S0010:
-	.byte	$20,$78,$3A,$00
-S0012:
-	.byte	$20,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ service_claim_private_ws (void)
@@ -49,16 +26,6 @@ S0012:
 
 .segment	"CODE"
 
-;
-; swr_print_str( "service_claim_private_ws:Begin" );
-;
-	lda     #<(S000A)
-	ldx     #>(S000A)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
 ;
 ; pws = (struct pws *)(Yreg + ( PWS_SIZE / 256 ) + 1 );  // Struct pws declared in /include/bbcswr/swr.h
 ;
@@ -100,74 +67,9 @@ L0003:	sta     _pws
 ;
 	sta     (_pws),y
 ;
-; swr_print_str( "service_claim_private_ws:End" );
+; }
 ;
-	lda     #<(S000E)
-	ldx     #>(S000E)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; swr_print_str("pws: a:");
-;
-	lda     #<(S000F)
-	ldx     #>(S000F)
-	jsr     _swr_print_str
-;
-; dbg_print_byte( Areg );
-;
-	lda     _Areg
-	jsr     _dbg_print_byte
-;
-; swr_print_str(" x:");
-;
-	lda     #<(S0010)
-	ldx     #>(S0010)
-	jsr     _swr_print_str
-;
-; dbg_print_byte( Xreg );
-;
-	lda     _Xreg
-	jsr     _dbg_print_byte
-;
-; swr_print_str(" y:");
-;
-	lda     #<(S0011)
-	ldx     #>(S0011)
-	jsr     _swr_print_str
-;
-; dbg_print_byte( Yreg );
-;
-	lda     _Yreg
-	jsr     _dbg_print_byte
-;
-; swr_print_str(" ");
-;
-	lda     #<(S0012)
-	ldx     #>(S0012)
-	jsr     _swr_print_str
-;
-; dbg_print_word( (word)pws );
-;
-	lda     _pws
-	ldx     _pws+1
-	jsr     _dbg_print_word
-;
-; dbg_print_byte( paged_rom_ws[Xreg] );
-;
-	ldy     _Xreg
-	lda     _paged_rom_ws,y
-	jsr     _dbg_print_byte
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jmp     _dbg_print_rom
+	rts
 
 .endproc
 

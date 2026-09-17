@@ -10,12 +10,208 @@
 	.importzp	c_sp, sreg, regsave, regbank
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
+	.importzp	_aws
+	.importzp	_pws
+	.importzp	_Areg
+	.importzp	_Xreg
+	.importzp	_Yreg
 	.import		_SWR_Title
 	.import		_SWR_Version
+	.export		_issue_rom_service_call
+	.export		_service_routine_pre_call
+	.export		_service_routine_post_call
 	.export		_print_rom_title
 	.import		_swr_print_str
 	.import		_swr_print_newline
 	.import		_swr_print_space
+	.export		_restore_regs
+
+; ---------------------------------------------------------------
+; void __near__ issue_rom_service_call (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_issue_rom_service_call: near
+
+.segment	"CODE"
+
+;
+; asm("lda %v", Areg);
+;
+	lda     _Areg
+;
+; asm("pha");
+;
+	pha
+;
+; asm("lda %v", Xreg);
+;
+	lda     _Xreg
+;
+; asm("pha");
+;
+	pha
+;
+; asm("lda %v", Yreg);
+;
+	lda     _Yreg
+;
+; asm("pha");
+;
+	pha
+;
+; asm("lda #$8f");    //Osbyte ROM service Requests
+;
+	lda     #$8f
+;
+; asm("jsr    OSBYTE");        //Returned value in X(low) Y(High)
+;
+	jsr     OSBYTE
+;
+; asm("pla");
+;
+	pla
+;
+; asm("sta %v", Yreg);
+;
+	sta     _Yreg
+;
+; asm("pla");
+;
+	pla
+;
+; asm("sta %v", Xreg);
+;
+	sta     _Xreg
+;
+; asm("pla");
+;
+	pla
+;
+; asm("sta %v", Areg);
+;
+	sta     _Areg
+;
+; }
+;
+	rts
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ service_routine_pre_call (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_service_routine_pre_call: near
+
+.segment	"CODE"
+
+;
+; asm("jsr _claim_static_aws");
+;
+	jsr     _claim_static_aws
+;
+; asm("lda #$0e");     //Set pointer to Absolute workspace
+;
+	lda     #$0e
+;
+; asm("sta %v + 1", aws);
+;
+	sta     _aws + 1
+;
+; asm("lda #$00");
+;
+	lda     #$00
+;
+; asm("sta %v", aws);
+;
+	sta     _aws
+;
+; asm("ldx %v",Xreg);    //Get ROM No
+;
+	ldx     _Xreg
+;
+; asm("lda _paged_rom_ws,x");  //Retrieve the PWS page address
+;
+	lda     _paged_rom_ws,x
+;
+; asm("and #$7f");     //Mask out bit 2^7 (AWS owner)
+;
+	and     #$7f
+;
+; asm("sta %v + 1", pws);   //Set pointer to Private workspace
+;
+	sta     _pws + 1
+;
+; asm("lda #$00");
+;
+	lda     #$00
+;
+; asm("sta %v", pws);
+;
+	sta     _pws
+;
+; asm("ldy #$80");     //Offset to PWS->c_stack_ptr
+;
+	ldy     #$80
+;
+; asm("lda (%v),y", pws);   //Load from PWS
+;
+	lda     (_pws),y
+;
+; asm("sta c_sp");     //Low Byte of C Stack
+;
+	sta     c_sp
+;
+; asm("lda %v + 1", pws);
+;
+	lda     _pws + 1
+;
+; asm("sta c_sp + 1");    //High Byte of C Stack
+;
+	sta     c_sp + 1
+;
+; }
+;
+	rts
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ service_routine_post_call (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_service_routine_post_call: near
+
+.segment	"CODE"
+
+;
+; asm("lda c_sp");     //Lower Byte of C Stack
+;
+	lda     c_sp
+;
+; asm("ldy #$80");     //Offset to PWS->c_stack_ptr
+;
+	ldy     #$80
+;
+; asm("sta (%v),y", pws);   //Save in PWS->c_stack_ptr
+;
+	sta     (_pws),y
+;
+; asm("jmp _restore_regs");
+;
+	jmp     _restore_regs
+;
+; }
+;
+	rts
+
+.endproc
 
 ; ---------------------------------------------------------------
 ; void __near__ print_rom_title (void)
@@ -49,6 +245,35 @@
 ; swr_print_newline();
 ;
 	jmp     _swr_print_newline
+
+.endproc
+
+; ---------------------------------------------------------------
+; void __near__ restore_regs (void)
+; ---------------------------------------------------------------
+
+.segment	"CODE"
+
+.proc	_restore_regs: near
+
+.segment	"CODE"
+
+;
+; asm("lda %v", Areg);
+;
+	lda     _Areg
+;
+; asm("ldx %v", Xreg);
+;
+	ldx     _Xreg
+;
+; asm("ldy %v", Yreg);
+;
+	ldy     _Yreg
+;
+; }
+;
+	rts
 
 .endproc
 

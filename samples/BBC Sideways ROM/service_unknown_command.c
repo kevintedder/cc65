@@ -38,7 +38,7 @@
 #include <bbcswr/bbcswr.h>
 #include <bbcswr/bbcswr_cmds.h>
 #include <bbcswr/swr_callback.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 void service_unknown_command() {
@@ -52,7 +52,7 @@ void service_unknown_command() {
 	char *cmd_str;
 	
  
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_unknown_command:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
@@ -82,12 +82,12 @@ void service_unknown_command() {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-	service_routine_post_call();
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_unknown_command:End" );
 	swr_print_newline();
-	dbg_print_rom();
 #endif
+
+	service_routine_post_call();
 
 }

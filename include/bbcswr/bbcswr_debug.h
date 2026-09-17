@@ -33,20 +33,19 @@
 /*****************************************************************************/
 
 
-#ifndef SWR_DEBUG_H
-#define SWR_DEBUG_H
+#ifndef BBCSWR_DEBUG_H
+#define BBCSWR_DEBUG_H
 
-#define SWR_DEBUG
+// #define BBCSWR_DEBUG
 
 #include <bbc/types.h>
 
-#define SERVICE_NAME "SC:"
+// #define SERVICE_NAME "SC:"
 
 //  ################################################################################
 //  ### THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out ###
 //  ################################################################################
 void dbg_print_header();
-void dbg_print_nibble();
 void dbg_print_byte(byte value );
 void dbg_print_word( unsigned int value );
 void dbg_print_long( unsigned long value );

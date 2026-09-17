@@ -36,7 +36,7 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 #include <bbcswr/bbcswr_cmds.h>
 
@@ -49,7 +49,7 @@ void service_help() {
 	byte cmd_idx;
     char* help_cmd;
 	
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_help:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
@@ -91,9 +91,11 @@ void service_help() {
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_help:End" );
 	swr_print_newline();
 #endif
+
+	service_routine_post_call();
 
 }

@@ -39,7 +39,7 @@ CFLAGS		?= -Osir -T -t $(TARGET) $(CWARN)
 DAFLAGS		?= --comments 4 -S 0x8000
 LDFLAGS		?= -m $@.map -vm -t $(TARGET)
 
-BINARY	=	swr.rom
+BINARY	=	bbcswr.rom
 
 LIBRARY	=	$(CC65_LIB)\bbcswr.lib
 
@@ -106,7 +106,7 @@ all:	$(ROM_SEED_OBJ)   $(BINARY)   $(BINARY).asm
 
 #	Rebuild the ROM seed file (~\CC65\LIBSRC\BBCSWR\CRT0.o) if it or the 
 #	ROM header file (.\SWR.INC) have changed 
-$(ROM_SEED_OBJ):  $(ROM_SEED_SRC)  .\swr.inc  ..\..\asminc\bbc\os.inc $(SERVICES)
+$(ROM_SEED_OBJ):  $(ROM_SEED_SRC)  .\bbcswr.inc  ..\..\asminc\bbc\os.inc $(SERVICES)
 	@$(CA65) $(ASFLAGS) -o $(ROM_SEED_OBJ)  $<
 	@$(AR65) a $(CC65_LIB)\bbcswr.lib  $(ROM_SEED_OBJ)
 

@@ -34,7 +34,7 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbc/types.h>
 
 //  ################################################################################
@@ -63,7 +63,7 @@ void dbg_print_tailer() {
 	asm("pla");
 }
 
-void dbg_print_nibble() {
+void dbg_nibble() {
 
 //	On entry:    	A	=	Nibble Value
 
@@ -81,10 +81,10 @@ void dbg_byte() {
 	asm("lsr		a");
 	asm("lsr		a");
 	asm("lsr		a");
-	asm("jsr		_dbg_print_nibble");
+	asm("jsr		_dbg_nibble");
 	asm("pla");
 	asm("and		#$0f");
-	asm("jsr		_dbg_print_nibble");
+	asm("jsr		_dbg_nibble");
 }
 
 void dbg_print_byte( byte value ) {
@@ -155,9 +155,9 @@ void dbg_print_workspace() {
 }
 
 void dbg_print_rom() {
-    dbg_print_cpu_registers();
-    dbg_print_workspace();
-    swr_print_newline();
+    // dbg_print_cpu_registers();
+    // dbg_print_workspace();
+    // swr_print_newline();
     // swr_print_newline();
 }
 
@@ -176,89 +176,3 @@ void dbg_print_rom() {
 	// return aws->eax;	// Return the values of A, X, Y
 
 // }
-
-/*
-
-; ; ------------------------------------------------------------------------
-; ; THE FOLLOWING IS USED FOR DEBUGGING PURPOSES ONLY - can be commented out
-; ; ------------------------------------------------------------------------
-
-; 	.export		_print_byte, _print_word
-
-; ; ------------------------------------------------------------------------
-; _nibble:
-; 	.byte	"0123456789ABCDEF"
-
-; ; ------------------------------------------------------------------------
-; _print_nibble:
-; 	and		#$0F
-; 	tax
-; 	lda		_nibble,x
-; 	jsr		OSWRCH
-; 	rts
-
-; ; ------------------------------------------------------------------------
-; _print_hex:
-; 	pha								; Preserve __A__
-; 	ror		a
-; 	ror		a
-; 	ror		a
-; 	ror		a
-; 	jsr		_print_nibble
-
-; 	pla								; Restore __A__
-; 	jsr		_print_nibble
-; 	rts
-
-; _print_hex_header:
-; 	lda		#$30					; '0'
-; 	jsr		OSWRCH
-; 	lda		#$78					; 'x'
-; 	jsr		OSWRCH
-; 	rts
-
-; _print_hex_footer:
-; 	lda		#$20					; ' '
-; 	jsr		OSWRCH
-; 	rts
-
-; ; ------------------------------------------------------------------------
-; _print_byte:						; Print the value held in __A__ reg
-; 	sta		tmp1					; Preserve __A__
-; 	stx		tmp2					; Preserve __X__
-; 	sty		tmp3					; Preserve __Y__
-
-; 	jsr		_print_hex_header
-
-; 	lda		tmp1					; Restore __A__
-; 	jsr		_print_hex				; Print it
-
-; 	jsr		_print_hex_footer
-
-; 	lda		tmp1					; Restore __A__
-; 	ldx		tmp2					; Restore __X__
-; 	ldy		tmp3					; Restore __Y__
-; 	rts
-
-; ; ------------------------------------------------------------------------
-; _print_word:						; Print the value held in __AX__ reg
-; 	sta		tmp1					; Preserve __A__
-; 	stx		tmp2					; Preserve __X__
-; 	sty		tmp3					; Preserve __Y__
-
-; 	jsr		_print_hex_header
-
-; 	lda		tmp2					; Restore __X__
-; 	jsr		_print_hex				; Print it
-
-; 	lda		tmp1					; Restore __A__
-; 	jsr		_print_hex				; Print it
-
-; 	jsr		_print_hex_footer
-
-; 	lda		tmp1					; Restore __A__
-; 	ldx		tmp2					; Restore __X__
-; 	ldy		tmp3					; Restore __Y__
-; 	rts
-
-*/

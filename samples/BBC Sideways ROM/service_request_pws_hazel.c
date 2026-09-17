@@ -36,14 +36,14 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 void service_request_pws_hazel() {                  // Do nothing, but allows you to do something
 
    	service_routine_pre_call();	
 	
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_request_pws_hazel:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
@@ -61,12 +61,12 @@ void service_request_pws_hazel() {                  // Do nothing, but allows yo
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-	service_routine_post_call();
-	
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_request_pws_hazel:End" );
 	swr_print_newline();
 #endif
 
+	service_routine_post_call();
+	
 }
 

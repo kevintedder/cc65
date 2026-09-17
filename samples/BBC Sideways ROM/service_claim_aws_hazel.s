@@ -13,18 +13,6 @@
 	.export		_service_claim_aws_hazel
 	.import		_service_routine_pre_call
 	.import		_service_routine_post_call
-	.import		_swr_print_str
-	.import		_swr_print_newline
-	.import		_dbg_print_rom
-
-.segment	"RODATA"
-
-S000A:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$63,$6C,$61,$69,$6D,$5F,$61,$77
-	.byte	$73,$5F,$68,$61,$7A,$65,$6C,$3A,$42,$65,$67,$69,$6E,$00
-S000B:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$63,$6C,$61,$69,$6D,$5F,$61,$77
-	.byte	$73,$5F,$68,$61,$7A,$65,$6C,$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ service_claim_aws_hazel (void)
@@ -37,37 +25,13 @@ S000B:
 .segment	"CODE"
 
 ;
-; swr_print_str( "service_claim_aws_hazel:Begin" );
-;
-	lda     #<(S000A)
-	ldx     #>(S000A)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
-;
 ; service_routine_pre_call();   
 ;
 	jsr     _service_routine_pre_call
 ;
 ; service_routine_post_call();
 ;
-	jsr     _service_routine_post_call
-;
-; swr_print_str( "service_claim_aws_hazel:End" );
-;
-	lda     #<(S000B)
-	ldx     #>(S000B)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jmp     _swr_print_newline
+	jmp     _service_routine_post_call
 
 .endproc
 

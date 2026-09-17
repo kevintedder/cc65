@@ -36,7 +36,7 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 void service_unknown_conf_cmd() {                  // Do nothing, but allows you to do something

@@ -17,20 +17,8 @@
 	.import		_service_routine_pre_call
 	.import		_service_routine_post_call
 	.import		_strcmp_cr
-	.import		_swr_print_str
-	.import		_swr_print_newline
 	.import		_commands
 	.import		_swr_callback
-	.import		_dbg_print_rom
-
-.segment	"RODATA"
-
-S000A:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
-	.byte	$63,$6F,$6D,$6D,$61,$6E,$64,$3A,$42,$65,$67,$69,$6E,$00
-S000B:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
-	.byte	$63,$6F,$6D,$6D,$61,$6E,$64,$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ service_unknown_command (void)
@@ -47,23 +35,9 @@ S000B:
 ;
 	jsr     push0
 ;
-; swr_print_str( "service_unknown_command:Begin" );
-;
-	jsr     decsp2
-	lda     #<(S000A)
-	ldx     #>(S000A)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
-;
 ; service_routine_pre_call();   
 ;
+	jsr     decsp2
 	jsr     _service_routine_pre_call
 ;
 ; cmd_str = &cmd_ptr[Yreg];      // cmd pointers to the start of the command string
@@ -159,20 +133,6 @@ L0004:	ldy     #$02
 ; service_routine_post_call();
 ;
 L0003:	jsr     _service_routine_post_call
-;
-; swr_print_str( "service_unknown_command:End" );
-;
-	lda     #<(S000B)
-	ldx     #>(S000B)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
 ;
 ; }
 ;

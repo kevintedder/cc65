@@ -36,7 +36,7 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 #define PWS_SIZE  sizeof(struct pws) // include code to claim Private workspace if size > 0
@@ -47,7 +47,7 @@ void service_claim_private_ws() {
 //				Xreg	= 	Current ROM Number
 //				Yreg	= 	Any parameter required for the service
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_claim_private_ws:Begin" );
 	swr_print_newline();
 #endif
@@ -70,7 +70,7 @@ void service_claim_private_ws() {
 	asm("sta	(_pws),y");											// Save stack point in c_stack_pointer
 
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_claim_private_ws:End" );
 	swr_print_newline();
 

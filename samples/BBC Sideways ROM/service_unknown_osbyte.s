@@ -21,17 +21,10 @@
 	.import		_swr_print_str
 	.import		_swr_print_newline
 	.import		_intdec
-	.import		_dbg_print_rom
 	.export		_print_osbyte
 
 .segment	"RODATA"
 
-S000D:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
-	.byte	$6F,$73,$62,$79,$74,$65,$3A,$42,$65,$67,$69,$6E,$00
-S000E:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$75,$6E,$6B,$6E,$6F,$77,$6E,$5F
-	.byte	$6F,$73,$62,$79,$74,$65,$3A,$45,$6E,$64,$00
 S000A:
 	.byte	$6F,$73,$62,$79,$74,$65,$20,$00
 S000C:
@@ -48,20 +41,6 @@ S000B	:=	S000C+0
 
 .segment	"CODE"
 
-;
-; swr_print_str( "service_unknown_osbyte:Begin" );
-;
-	lda     #<(S000D)
-	ldx     #>(S000D)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
 ;
 ; service_routine_pre_call();   
 ;
@@ -80,7 +59,7 @@ S000B	:=	S000C+0
 	beq     L0005
 	cmp     #$1C
 	beq     L0006
-	jmp     L0003
+	jmp     _service_routine_post_call
 ;
 ; print_osbyte();
 ;
@@ -124,17 +103,7 @@ L000B:	ldy     #$00
 ;
 ; service_routine_post_call();
 ;
-L0003:	jsr     _service_routine_post_call
-;
-; swr_print_str( "service_unknown_osbyte:End" );
-;
-	lda     #<(S000E)
-	ldx     #>(S000E)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jmp     _swr_print_newline
+	jmp     _service_routine_post_call
 
 .endproc
 

@@ -13,19 +13,6 @@
 	.export		_service_sound_buffer_purged
 	.import		_service_routine_pre_call
 	.import		_service_routine_post_call
-	.import		_swr_print_str
-	.import		_swr_print_newline
-	.import		_dbg_print_rom
-
-.segment	"RODATA"
-
-S000A:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$73,$6F,$75,$6E,$64,$5F,$62,$75
-	.byte	$66,$66,$65,$72,$5F,$70,$75,$72,$67,$65,$64,$3A,$42,$65,$67,$69
-	.byte	$6E,$00
-S000B:
-	.byte	$73,$65,$72,$76,$69,$63,$65,$5F,$73,$6F,$75,$6E,$64,$5F,$62,$75
-	.byte	$66,$66,$65,$72,$5F,$70,$75,$72,$67,$65,$64,$3A,$45,$6E,$64,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ service_sound_buffer_purged (void)
@@ -38,37 +25,13 @@ S000B:
 .segment	"CODE"
 
 ;
-; swr_print_str( "service_sound_buffer_purged:Begin" );
-;
-	lda     #<(S000A)
-	ldx     #>(S000A)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jsr     _swr_print_newline
-;
-; dbg_print_rom();
-;
-	jsr     _dbg_print_rom
-;
 ; service_routine_pre_call();
 ;
 	jsr     _service_routine_pre_call
 ;
 ; service_routine_post_call();
 ;
-	jsr     _service_routine_post_call
-;
-; swr_print_str( "service_sound_buffer_purged:End" );
-;
-	lda     #<(S000B)
-	ldx     #>(S000B)
-	jsr     _swr_print_str
-;
-; swr_print_newline();
-;
-	jmp     _swr_print_newline
+	jmp     _service_routine_post_call
 
 .endproc
 

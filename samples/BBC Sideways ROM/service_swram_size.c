@@ -36,12 +36,12 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 void service_swram_size() {                  // Do nothing, but allows you to do something
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_swram_size:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
@@ -59,12 +59,12 @@ void service_swram_size() {                  // Do nothing, but allows you to do
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-	service_routine_post_call();
-
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_swram_size:End" );
 	swr_print_newline();
 #endif
+
+	service_routine_post_call();
 
 }
 

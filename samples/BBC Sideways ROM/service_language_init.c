@@ -36,13 +36,13 @@
 
 
 #include <bbcswr/bbcswr.h>
-#include <bbcswr/swr_debug.h>
+#include <bbcswr/bbcswr_debug.h>
 #include <bbcswr/types.h>
 
 void service_language_init() {                  // Do nothing, but allows you to do something
 
 
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_language_init:Begin" );
 	swr_print_newline();
 	dbg_print_rom();
@@ -59,12 +59,12 @@ void service_language_init() {                  // Do nothing, but allows you to
     // PLACE YOUR CODE ABOVE           //
     // --------------------------------//
 
-	service_routine_post_call();
-
-#ifdef SWR_DEBUG
+#ifdef BBCSWR_DEBUG
 	swr_print_str( "service_language_init:End" );
 	swr_print_newline();
 #endif
+
+	service_routine_post_call();
 
 }
 

@@ -16,10 +16,10 @@ _SWR_Binary_Ver:
 	.byte	$00
 
 _SWR_Title:
-	.byte	"CC65 Dummy", $00			; Adjust this Title to suit
+	.byte	"BBCSWR", $00			; Specificallty for this ROM
 
 _SWR_Version:
-	.byte	"v0.00", $00		; Adjust this Version to suit
+	.byte	"v0.01", $00			; Specificallty for this ROM
 
 _SWR_Copyright:
 	.byte	$00, "(C)"
@@ -32,4 +32,5 @@ _SWR_2nd_Proc:
 	.byte	$00, $00
 
 .endmacro
+
 
